@@ -1324,6 +1324,7 @@ export default function App() {
   const [shownMilestones, setShownMilestones] = useState([]);
   const [onboardingDraft, setOnboardingDraft] = useState(null);
   const [showRegenConfirm, setShowRegenConfirm] = useState(false);
+  const [showRoutineInfo, setShowRoutineInfo] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
   const isToday = viewDate === today;
@@ -1908,30 +1909,76 @@ const confirmRegen = () => {
                   </div>
                 </div>
 
-                {/* Personal message (only today) */}
-                {isToday && aiMsg && (
-                  <div style={{
-                    padding: "12px 14px",
-                    background: "linear-gradient(135deg,#fafbff,#f0fbfe)",
-                    border: `1px solid ${C.border}`, borderRadius: 12, marginBottom: 18
-                  }}>
-                    <div style={{ fontSize: 10, color: C.brand1, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>
-                      {t.ai_label}
-                    </div>
-                    <p style={{ fontSize: 12, color: C.textDim, lineHeight: 1.55 }}>{aiMsg}</p>
-                  </div>
-                )}
-
-                {/* Warnings */}
-                {isToday && warns.length > 0 && (
+               {/* Collapsible info: mensaje personal + warnings unificados */}
+                {isToday && (aiMsg || warns.length > 0) && (
                   <div style={{ marginBottom: 18 }}>
-                    {warns.map((w, i) => (
-                      <div key={i} style={{
-                        padding: "10px 13px", background: C.warningBg,
-                        border: `1px solid ${C.morning.border}`, borderRadius: 10,
-                        marginBottom: 6, fontSize: 11, color: C.warning
-                      }}>⚠️ {w}</div>
-                    ))}
+                    <button
+                      onClick={() => setShowRoutineInfo(v => !v)}
+                      style={{
+                        width: "100%",
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "11px 14px",
+                        background: showRoutineInfo ? C.bgSoft : "transparent",
+                        border: `1px solid ${C.border}`,
+                        borderRadius: 12,
+                        cursor: "pointer",
+                        fontFamily: "Oswald,sans-serif",
+                        transition: "background 0.2s"
+                      }}
+                    >
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", gap: 8,
+                        fontSize: 11, color: C.brand1, fontWeight: 600,
+                        textTransform: "uppercase", letterSpacing: "0.1em"
+                      }}>
+                        {t.ai_label}
+                        {warns.length > 0 && (
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            minWidth: 16, height: 16, padding: "0 5px",
+                            background: C.warning, color: "#fff",
+                            borderRadius: 8, fontSize: 9, fontWeight: 700,
+                            letterSpacing: 0
+                          }}>{warns.length}</span>
+                        )}
+                      </span>
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        fontSize: 11, color: C.textMuted, fontWeight: 500
+                      }}>
+                        {showRoutineInfo ? t.hide_info : t.more_info}
+                        <span style={{
+                          display: "inline-flex",
+                          transform: showRoutineInfo ? "rotate(90deg)" : "rotate(0deg)",
+                          transition: "transform 0.2s"
+                        }}>
+                          {Icon.chevRight(14)}
+                        </span>
+                      </span>
+                    </button>
+
+                    {showRoutineInfo && (
+                      <div style={{ marginTop: 8, animation: "fadeIn 0.2s" }}>
+                        {aiMsg && (
+                          <div style={{
+                            padding: "12px 14px",
+                            background: "linear-gradient(135deg,#fafbff,#f0fbfe)",
+                            border: `1px solid ${C.border}`,
+                            borderRadius: 12,
+                            marginBottom: warns.length > 0 ? 8 : 0
+                          }}>
+                            <p style={{ fontSize: 12, color: C.textDim, lineHeight: 1.55, margin: 0 }}>{aiMsg}</p>
+                          </div>
+                        )}
+                        {warns.map((w, i) => (
+                          <div key={i} style={{
+                            padding: "10px 13px", background: C.warningBg,
+                            border: `1px solid ${C.morning.border}`, borderRadius: 10,
+                            marginBottom: 6, fontSize: 11, color: C.warning
+                          }}>⚠️ {w}</div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 

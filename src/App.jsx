@@ -1334,30 +1334,44 @@ export default function App() {
 
   useEffect(() => { injectFonts(); }, []);
 
-  /* Check notification permission on load */
+/* Check notification permission on load */
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // PASO 1: Detectar iframe ANTES de mirar Notification API.
+    // Si estamos embebidos en WordPress (o cualquier parent cross-origin),
+    // bypaseamos el gate incondicionalmente. Esto cubre tanto navegadores
+    // que soportan Notification pero la bloquean en iframes, como iPhone
+    // Safari donde Notification ni siquiera existe fuera de PWA.
+    // Las push reales llegarán vía OneSignal desde el dominio padre (Fase 5).
+    let inIframe = false;
+    try {
+      inIframe = window.parent !== window;
+    } catch {
+      // cross-origin access error = estamos en un iframe foráneo
+      inIframe = true;
+    }
+
+    if (inIframe) {
+      setNotifBypassed(true);
+      // Aun así, si Notification existe, reflejamos el estado real
+      // por si en algún momento queremos mostrarlo en Ajustes.
+      if ("Notification" in window) {
+        setNotifState(Notification.permission);
+        setNotif(Notification.permission === "granted");
+      } else {
+        setNotifState("unsupported");
+      }
+      return;
+    }
+
+    // PASO 2: Standalone (no iframe). Aquí sí importa el soporte real.
     if (!("Notification" in window)) {
       setNotifState("unsupported");
       return;
     }
     setNotifState(Notification.permission);
     setNotif(Notification.permission === "granted");
-
-    // Si estamos dentro de un iframe cross-origin (ej. embed en WordPress),
-    // los navegadores restringen el permiso de notificaciones y suelen devolver
-    // "denied" sin posibilidad de cambiarlo. Bypaseamos el gate en ese caso:
-    // el tracker funciona sin recordatorios locales, pero el resto (sync,
-    // historial, rutina) sigue operativo. Para notificaciones reales, el usuario
-    // puede abrir la app como PWA (Fase 5).
-    try {
-      if (window.parent !== window) {
-        setNotifBypassed(true);
-      }
-    } catch {
-      // cross-origin access error also means we're in a foreign iframe
-      setNotifBypassed(true);
-    }
   }, []);
 
   /* Load persisted state — hidratación local inmediata + pull del bridge en background */

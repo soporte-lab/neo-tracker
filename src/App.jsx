@@ -1645,9 +1645,10 @@ export default function App() {
     setShowRegenConfirm(true);
   };
 
-  const confirmRegen = () => {
+const confirmRegen = () => {
     setShowRegenConfirm(false);
     setAppState("onboarding");
+    setView("today"); // Reset tab para que al volver a dashboard se vea la rutina nueva, no Ajustes
     setRoutine(null);
     // Note: we do NOT clear `checks`, `history`, or `neo-checks-${today}` — this
     // preserves the user's streak and today's progress. The new routine's

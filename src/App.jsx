@@ -931,7 +931,12 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
     onDraftChange?.({ step, goals, conds });
   }, [step, goals, conds]);
 
-  const tg = id => setGoals(g => g.includes(id) ? g.filter(x => x !== id) : [...g, id]);
+  const MAX_GOALS = 5;
+  const tg = id => setGoals(g => {
+    if (g.includes(id)) return g.filter(x => x !== id);
+    if (g.length >= MAX_GOALS) { haptic(8); return g; }
+    return [...g, id];
+  });
   const tc = id => {
     if (id === "none") { setConds(["none"]); return; }
     setConds(c => { const n = c.filter(x => x !== "none"); return n.includes(id) ? n.filter(x => x !== id) : [...n, id]; });
@@ -943,24 +948,41 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
     {
       ti: t.step1_title, su: t.step1_sub, ok: goals.length > 0,
       body: (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {GOALS.map(g => {
-            const sel = goals.includes(g.id);
-            return (
-          <div key={g.id} onClick={() => tg(g.id)} style={{
-                padding: "14px 12px", borderRadius: 14, cursor: "pointer",
-                border: `1px solid ${sel ? "#2c4a8f" : C.border}`,
-                background: sel ? "#f0fbfe" : C.surface, transition: "all 0.2s"
-              }}>
-                <div style={{ marginBottom: 8, color: sel ? "#2c4a8f" : C.textDim, display: "flex", alignItems: "center", height: 22 }}>
-                  {GOAL_ICON[g.id] ? GOAL_ICON[g.id](22) : null}
+        <>
+          <div style={{
+            textAlign: "center", marginBottom: 14,
+            fontSize: 12, color: C.textMuted, fontWeight: 600,
+            fontFamily: "Oswald,sans-serif", letterSpacing: "0.05em"
+          }}>
+            <span style={{ color: goals.length >= MAX_GOALS ? "#2c4a8f" : C.textMuted }}>
+              {goals.length}
+            </span>
+            {" / "}{MAX_GOALS}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {GOALS.map(g => {
+              const sel = goals.includes(g.id);
+              const capped = !sel && goals.length >= MAX_GOALS;
+              return (
+                <div key={g.id} onClick={() => tg(g.id)} style={{
+                  padding: "14px 12px", borderRadius: 14,
+                  cursor: capped ? "not-allowed" : "pointer",
+                  border: `1px solid ${sel ? "#2c4a8f" : C.border}`,
+                  background: sel ? "#f0fbfe" : C.surface,
+                  opacity: capped ? 0.4 : 1,
+                  filter: capped ? "grayscale(0.5)" : "none",
+                  transition: "all 0.2s"
+                }}>
+                  <div style={{ marginBottom: 8, color: sel ? "#2c4a8f" : C.textDim, display: "flex", alignItems: "center", height: 22 }}>
+                    {GOAL_ICON[g.id] ? GOAL_ICON[g.id](22) : null}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: sel ? "#2c4a8f" : C.text, lineHeight: 1.3, fontFamily: "Oswald,sans-serif" }}>{g.label}</div>
+                  <div style={{ fontSize: 11, color: C.textMuted, marginTop: 3, lineHeight: 1.4 }}>{g.desc}</div>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: sel ? "#2c4a8f" : C.text, lineHeight: 1.3, fontFamily: "Oswald,sans-serif" }}>{g.label}</div>
-                <div style={{ fontSize: 11, color: C.textMuted, marginTop: 3, lineHeight: 1.4 }}>{g.desc}</div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )
     },
     {

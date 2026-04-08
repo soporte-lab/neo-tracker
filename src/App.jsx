@@ -947,15 +947,15 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
           {GOALS.map(g => {
             const sel = goals.includes(g.id);
             return (
-              <div key={g.id} onClick={() => tg(g.id)} style={{
+          <div key={g.id} onClick={() => tg(g.id)} style={{
                 padding: "14px 12px", borderRadius: 14, cursor: "pointer",
-                border: `1px solid ${sel ? C.brand2 : C.border}`,
+                border: `1px solid ${sel ? "#2c4a8f" : C.border}`,
                 background: sel ? "#f0fbfe" : C.surface, transition: "all 0.2s"
               }}>
-                <div style={{ marginBottom: 8, color: sel ? C.brand2 : C.textDim, display: "flex", alignItems: "center", height: 22 }}>
+                <div style={{ marginBottom: 8, color: sel ? "#2c4a8f" : C.textDim, display: "flex", alignItems: "center", height: 22 }}>
                   {GOAL_ICON[g.id] ? GOAL_ICON[g.id](22) : null}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: sel ? C.brand2 : C.text, lineHeight: 1.3, fontFamily: "Oswald,sans-serif" }}>{g.label}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: sel ? "#2c4a8f" : C.text, lineHeight: 1.3, fontFamily: "Oswald,sans-serif" }}>{g.label}</div>
                 <div style={{ fontSize: 11, color: C.textMuted, marginTop: 3, lineHeight: 1.4 }}>{g.desc}</div>
               </div>
             );
@@ -1041,7 +1041,7 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
       </div>
       <h2 style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 22, color: C.text, marginBottom: 6 }}>{cur.ti}</h2>
       <p style={{ fontSize: 13, color: C.textMuted, marginBottom: 22, lineHeight: 1.55 }}>{cur.su}</p>
-      <div style={{ marginBottom: 26, maxHeight: "50vh", overflowY: "auto" }}>{cur.body}</div>
+      <div style={{ marginBottom: 26 }}>{cur.body}</div>
       <div style={{ display: "flex", gap: 12 }}>
         {step > 0 && (
           <button onClick={() => setStep(s => s - 1)} style={{

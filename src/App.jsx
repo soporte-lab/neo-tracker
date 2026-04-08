@@ -105,7 +105,8 @@ const bridge = (() => {
     pullState:   ()    => send("nr-tracker-state-pull", null).then(r => r.data),
     pushState:   (p)   => send("nr-tracker-state-push", p).then(r => r.data),
     generate:    (p)   => send("nr-tracker-generate", p, 60000).then(r => ({ status: r.status, data: r.data, ok: r.ok })),
-    quota:       ()    => send("nr-tracker-quota", null).then(r => r.data)
+    quota:       ()    => send("nr-tracker-quota", null).then(r => r.data),
+    onesignalTag: (action) => send("nr-tracker-onesignal-tag", { action: action || "add" }).then(r => r.data)
   };
 })();
 

@@ -1420,7 +1420,7 @@ export default function App() {
         }
         if (localHistory && Object.keys(localHistory).length) setHistory(localHistory);
         if (cR) setChecks(JSON.parse(cR.value));
-        if (remR) {
+       if (remR) {
           const parsedRems = JSON.parse(remR.value);
           const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
           if (parsedRems.tz !== currentTz) {
@@ -1430,6 +1430,19 @@ export default function App() {
           } else {
             setRems(parsedRems);
           }
+        } else {
+          // Sin reminders locales: persistir el estado inicial con tz del dispositivo.
+          // Esto garantiza que incluso en modo local-only (bridge caído) quede
+          // algo en localStorage, y que cuando el bridge vuelva se sincronice.
+          const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
+          const initialRems = {
+            morning: { time: "08:00", enabled: true },
+            afternoon: { time: "14:00", enabled: false },
+            night: { time: "21:00", enabled: true },
+            tz: currentTz
+          };
+          setRems(initialRems);
+          storage.set("neo-reminders", JSON.stringify(initialRems));
         }
         if (mR) setShownMilestones(JSON.parse(mR.value));
         if (cmR) setCompactManual(JSON.parse(cmR.value));
@@ -1480,7 +1493,7 @@ export default function App() {
             __nrSyncPending.routine_ts = localRoutineTs;
           }
 
-          // history
+       // history
           if (remote.history_ts > localHistoryTs && remote.history) {
             try { localStorage.setItem("neo-history", JSON.stringify(remote.history)); } catch {}
             try { localStorage.setItem("neo-history-ts", String(remote.history_ts)); } catch {}
@@ -1488,6 +1501,49 @@ export default function App() {
           } else if (localHistoryTs > remote.history_ts && localHistory && Object.keys(localHistory).length) {
             __nrSyncPending.history = localHistory;
             __nrSyncPending.history_ts = localHistoryTs;
+          }
+
+          // reminders (cross-device sync + tz siempre local)
+          const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
+          const localRemindersTs = getLocalTs("neo-reminders");
+          const localRemindersRaw = remR ? JSON.parse(remR.value) : null;
+
+          if (remote.reminders_ts > localRemindersTs && remote.reminders) {
+            // El servidor tiene reminders más nuevos (editados en otro dispositivo).
+            // Aceptamos los horarios/enabled pero forzamos tz al local.
+            const merged = { ...remote.reminders, tz: currentTz };
+            try { localStorage.setItem("neo-reminders", JSON.stringify(merged)); } catch {}
+            try { localStorage.setItem("neo-reminders-ts", String(remote.reminders_ts)); } catch {}
+            setRems(merged);
+
+            // Si el tz remoto era distinto del local, re-sincronizamos para que
+            // el servidor aprenda el tz de este dispositivo (último-en-escribir-gana).
+            if (remote.reminders.tz !== currentTz) {
+              const newTs = Date.now();
+              __nrSyncPending.reminders = merged;
+              __nrSyncPending.reminders_ts = newTs;
+              try { localStorage.setItem("neo-reminders-ts", String(newTs)); } catch {}
+            }
+          } else if (localRemindersTs > remote.reminders_ts && localRemindersRaw) {
+            // Local es más nuevo — encolar push
+            __nrSyncPending.reminders = localRemindersRaw;
+            __nrSyncPending.reminders_ts = localRemindersTs;
+          } else if (!remote.reminders && !localRemindersRaw) {
+            // Ni servidor ni local tienen reminders. Es un usuario nuevo o recién
+            // onboardeado. Persistimos el estado inicial del useState (con tz local)
+            // para que el cron de Fase 6 tenga el tz desde el principio.
+            const initialRems = {
+              morning: { time: "08:00", enabled: true },
+              afternoon: { time: "14:00", enabled: false },
+              night: { time: "21:00", enabled: true },
+              tz: currentTz
+            };
+            const initTs = Date.now();
+            try { localStorage.setItem("neo-reminders", JSON.stringify(initialRems)); } catch {}
+            try { localStorage.setItem("neo-reminders-ts", String(initTs)); } catch {}
+            setRems(initialRems);
+            __nrSyncPending.reminders = initialRems;
+            __nrSyncPending.reminders_ts = initTs;
           }
         }
       } catch {

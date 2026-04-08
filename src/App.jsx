@@ -1341,6 +1341,21 @@ export default function App() {
     }
     setNotifState(Notification.permission);
     setNotif(Notification.permission === "granted");
+
+    // Si estamos dentro de un iframe cross-origin (ej. embed en WordPress),
+    // los navegadores restringen el permiso de notificaciones y suelen devolver
+    // "denied" sin posibilidad de cambiarlo. Bypaseamos el gate en ese caso:
+    // el tracker funciona sin recordatorios locales, pero el resto (sync,
+    // historial, rutina) sigue operativo. Para notificaciones reales, el usuario
+    // puede abrir la app como PWA (Fase 5).
+    try {
+      if (window.parent !== window) {
+        setNotifBypassed(true);
+      }
+    } catch {
+      // cross-origin access error also means we're in a foreign iframe
+      setNotifBypassed(true);
+    }
   }, []);
 
   /* Load persisted state — hidratación local inmediata + pull del bridge en background */

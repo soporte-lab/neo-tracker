@@ -113,13 +113,14 @@ const bridge = (() => {
 
 /**
  * Mapeo: clave de localStorage → clave corta del endpoint /state.
- * Solo estas 3 claves se sincronizan con wp_usermeta cross-device.
- * reminders y compact-manual se mantienen locales (preferencias por dispositivo).
+ * Estas claves se sincronizan con wp_usermeta cross-device.
+ * compact-manual se mantiene local (preferencia por dispositivo).
  */
 const SYNCED_KEY_MAP = {
   "neo-profile": "profile",
   "neo-routine": "routine",
-  "neo-history": "history"
+  "neo-history": "history",
+  "neo-reminders": "reminders"
 };
 
 // Durante la hidratación no disparamos pushes al servidor (se acumulan y
@@ -1305,10 +1306,11 @@ export default function App() {
   const [history, setHistory] = useState({});
   const [streak, setStreak] = useState(0);
   const [record, setRecord] = useState(0);
-  const [rems, setRems] = useState({
+ const [rems, setRems] = useState({
     morning: { time: "08:00", enabled: true },
     afternoon: { time: "14:00", enabled: false },
-    night: { time: "21:00", enabled: true }
+    night: { time: "21:00", enabled: true },
+    tz: (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC"
   });
   const [notif, setNotif] = useState(false);
   const [notifState, setNotifState] = useState("default"); // "default" | "granted" | "denied" | "unsupported"
@@ -1381,7 +1383,17 @@ export default function App() {
         }
         if (localHistory && Object.keys(localHistory).length) setHistory(localHistory);
         if (cR) setChecks(JSON.parse(cR.value));
-        if (remR) setRems(JSON.parse(remR.value));
+        if (remR) {
+          const parsedRems = JSON.parse(remR.value);
+          const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
+          if (parsedRems.tz !== currentTz) {
+            parsedRems.tz = currentTz;
+            setRems(parsedRems);
+            storage.set("neo-reminders", JSON.stringify(parsedRems));
+          } else {
+            setRems(parsedRems);
+          }
+        }
         if (mR) setShownMilestones(JSON.parse(mR.value));
         if (cmR) setCompactManual(JSON.parse(cmR.value));
         if (odR) setOnboardingDraft(JSON.parse(odR.value));

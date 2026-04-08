@@ -1823,6 +1823,13 @@ const confirmRegen = () => {
       setRoutine(fb.routine); setAiMsg(fb.personalMessage); setWarns(fb.warnings);
       setAppState("dashboard");
     }
+
+    // Tag user as active in OneSignal (fire-and-forget, no bloquea UX).
+    // Se ejecuta tras setAppState("dashboard") en ambos paths (éxito y fallback):
+    // si el usuario completó onboarding, debe recibir reminders aunque la IA fallara.
+    if (bridge.isAvailable()) {
+      bridge.onesignalTag("add").catch(() => {});
+    }
   };
 
   /* Format view date */

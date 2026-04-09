@@ -636,18 +636,6 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
               fontFeatureSettings: '"zero", "ss01"',
               letterSpacing: "-0.01em"
             }}>{supp.dose}</span>
-            {hasNotes && (
-              <button
-                onClick={e => { e.stopPropagation(); setExp(v => !v); }}
-                style={{
-                  background: "none", border: "none", color: C.textMuted,
-                  fontSize: 10, cursor: "pointer", padding: 0, textDecoration: "underline",
-                  fontFamily: "Inter, sans-serif"
-                }}
-              >
-                {exp ? t.hide_info : t.more_info}
-              </button>
-            )}
             {supp.frequency && supp.frequency !== "daily" && (
               <span style={{
                 fontSize: 9, padding: "2px 7px", borderRadius: 20,
@@ -664,6 +652,36 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
             }}>
               {supp.brand}
               {supp.benefits && supp.benefits.length > 0 && <> · {supp.benefits.join(" · ")}</>}
+              {hasNotes && (
+                <>
+                  {" · "}
+                  <button
+                    onClick={e => { e.stopPropagation(); setExp(v => !v); }}
+                    style={{
+                      background: "none", border: "none", color: C.textMuted,
+                      fontSize: 10, cursor: "pointer", padding: 0, textDecoration: "underline",
+                      fontFamily: "Inter, sans-serif"
+                    }}
+                  >
+                    {exp ? t.hide_info : t.more_info}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+          {/* En modo compacto (sin brand/beneficios visibles) mostramos "Más info" en su propia línea */}
+          {!showExpanded && hasNotes && (
+            <div style={{ marginTop: 4 }}>
+              <button
+                onClick={e => { e.stopPropagation(); setExp(v => !v); }}
+                style={{
+                  background: "none", border: "none", color: C.textMuted,
+                  fontSize: 10, cursor: "pointer", padding: 0, textDecoration: "underline",
+                  fontFamily: "Inter, sans-serif"
+                }}
+              >
+                {exp ? t.hide_info : t.more_info}
+              </button>
             </div>
           )}
           {hasNotes && exp && (

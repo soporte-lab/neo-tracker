@@ -98,18 +98,17 @@ const bridge = (() => {
     }
   };
 
-return {
+  return {
     handshake,
     isAvailable: () => available === true,
     isResolved:  () => available !== null,
     pullState:   ()    => send("nr-tracker-state-pull", null).then(r => r.data),
     pushState:   (p)   => send("nr-tracker-state-push", p).then(r => r.data),
     generate:    (p)   => send("nr-tracker-generate", p, 60000).then(r => ({ status: r.status, data: r.data, ok: r.ok })),
-    quota:       ()    => send("nr-tracker-quota", null).then(r => r.data),
-    onesignalTag: (action) => send("nr-tracker-onesignal-tag", { action: action || "add" }).then(r => r.data),
-    pushTest:    ()    => send("nr-tracker-push-test", {}).then(r => ({ ok: r.ok, status: r.status, data: r.data }))
+    quota:       ()    => send("nr-tracker-quota", null).then(r => r.data)
   };
 })();
+
 /* ───────────────── STORAGE + REMOTE SYNC ───────────────── */
 
 /**
@@ -259,13 +258,13 @@ const NOTIF_GATE = {
 
 /* ───────────────── EXTRA TRANSLATIONS (added in phase 2 features) ───────────────── */
 const EXTRA_T = {
-  es: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"¿Regenerar tu rutina?", regen_confirm_body:"Tu racha de {streak} días se mantendrá intacta. Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_body_nostreak:"Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_btn:"Sí, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota del día", note_placeholder:"Cómo te has sentido hoy (opcional)…", grace_day:"Día de gracia usado", none_excludes:"Al seleccionar \"ninguna\", las demás opciones se desactivan" },
-  en: { mark_all:"Mark all", unmark_all:"Unmark all", regen_confirm_title:"Regenerate your routine?", regen_confirm_body:"Your {streak}-day streak will stay intact. A new routine will be generated based on updated goals.", regen_confirm_body_nostreak:"A new routine will be generated based on updated goals.", regen_confirm_btn:"Yes, regenerate", regen_cancel_btn:"Cancel", note_label:"Today's note", note_placeholder:"How have you felt today (optional)…", grace_day:"Grace day used", none_excludes:"Selecting \"none\" disables the other options" },
-  fr: { mark_all:"Tout marquer", unmark_all:"Tout démarquer", regen_confirm_title:"Régénérer votre routine ?", regen_confirm_body:"Votre série de {streak} jours restera intacte. Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_body_nostreak:"Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_btn:"Oui, régénérer", regen_cancel_btn:"Annuler", note_label:"Note du jour", note_placeholder:"Comment vous sentez-vous aujourd'hui (facultatif)…", grace_day:"Jour de grâce utilisé", none_excludes:"En sélectionnant « aucune », les autres options sont désactivées" },
-  de: { mark_all:"Alle markieren", unmark_all:"Alle demarkieren", regen_confirm_title:"Ihre Routine neu generieren?", regen_confirm_body:"Ihre {streak}-Tage-Serie bleibt erhalten. Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_body_nostreak:"Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_btn:"Ja, neu generieren", regen_cancel_btn:"Abbrechen", note_label:"Tagesnotiz", note_placeholder:"Wie haben Sie sich heute gefühlt (optional)…", grace_day:"Kulanztag verwendet", none_excludes:"Bei Auswahl von „keine\" werden die anderen Optionen deaktiviert" },
-  pt: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"Regenerar sua rotina?", regen_confirm_body:"Sua sequência de {streak} dias permanecerá intacta. Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_body_nostreak:"Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_btn:"Sim, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota do dia", note_placeholder:"Como você se sentiu hoje (opcional)…", grace_day:"Dia de graça usado", none_excludes:"Ao selecionar \"nenhuma\", as outras opções ficam desativadas" },
-  it: { mark_all:"Seleziona tutti", unmark_all:"Deseleziona tutti", regen_confirm_title:"Rigenerare la tua routine?", regen_confirm_body:"La tua serie di {streak} giorni rimarrà intatta. Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_body_nostreak:"Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_btn:"Sì, rigenera", regen_cancel_btn:"Annulla", note_label:"Nota del giorno", note_placeholder:"Come ti sei sentito oggi (facoltativo)…", grace_day:"Giorno di grazia usato", none_excludes:"Selezionando \"nessuna\", le altre opzioni vengono disattivate" },
-  ea: { mark_all:"تحديد الكل", unmark_all:"إلغاء التحديد", regen_confirm_title:"إعادة إنشاء روتينك؟", regen_confirm_body:"سلسلتك البالغة {streak} يومًا ستبقى سليمة. سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_body_nostreak:"سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_btn:"نعم، إعادة الإنشاء", regen_cancel_btn:"إلغاء", note_label:"ملاحظة اليوم", note_placeholder:"كيف شعرت اليوم (اختياري)…", grace_day:"تم استخدام يوم السماح", none_excludes:"عند اختيار \"لا شيء\"، يتم تعطيل الخيارات الأخرى" }
+  es: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"¿Regenerar tu rutina?", regen_confirm_body:"Tu racha de {streak} días se mantendrá intacta. Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_body_nostreak:"Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_btn:"Sí, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota del día", note_placeholder:"Cómo te has sentido hoy (opcional)…", grace_day:"Día de gracia usado", none_excludes:"Al seleccionar \"ninguna\", las demás opciones se desactivan", push_test_btn:"Probar notificación", push_test_ok:"✓ Notificación enviada — debería llegar en unos segundos", push_test_no_sub:"Activa primero las notificaciones en este navegador" },
+  en: { mark_all:"Mark all", unmark_all:"Unmark all", regen_confirm_title:"Regenerate your routine?", regen_confirm_body:"Your {streak}-day streak will stay intact. A new routine will be generated based on updated goals.", regen_confirm_body_nostreak:"A new routine will be generated based on updated goals.", regen_confirm_btn:"Yes, regenerate", regen_cancel_btn:"Cancel", note_label:"Today's note", note_placeholder:"How have you felt today (optional)…", grace_day:"Grace day used", none_excludes:"Selecting \"none\" disables the other options", push_test_btn:"Test notification", push_test_ok:"✓ Notification sent — it should arrive in a few seconds", push_test_no_sub:"Enable notifications in this browser first" },
+  fr: { mark_all:"Tout marquer", unmark_all:"Tout démarquer", regen_confirm_title:"Régénérer votre routine ?", regen_confirm_body:"Votre série de {streak} jours restera intacte. Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_body_nostreak:"Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_btn:"Oui, régénérer", regen_cancel_btn:"Annuler", note_label:"Note du jour", note_placeholder:"Comment vous sentez-vous aujourd'hui (facultatif)…", grace_day:"Jour de grâce utilisé", none_excludes:"En sélectionnant « aucune », les autres options sont désactivées", push_test_btn:"Tester la notification", push_test_ok:"✓ Notification envoyée — elle devrait arriver dans quelques secondes", push_test_no_sub:"Activez d'abord les notifications dans ce navigateur" },
+  de: { mark_all:"Alle markieren", unmark_all:"Alle demarkieren", regen_confirm_title:"Ihre Routine neu generieren?", regen_confirm_body:"Ihre {streak}-Tage-Serie bleibt erhalten. Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_body_nostreak:"Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_btn:"Ja, neu generieren", regen_cancel_btn:"Abbrechen", note_label:"Tagesnotiz", note_placeholder:"Wie haben Sie sich heute gefühlt (optional)…", grace_day:"Kulanztag verwendet", none_excludes:"Bei Auswahl von „keine\" werden die anderen Optionen deaktiviert", push_test_btn:"Benachrichtigung testen", push_test_ok:"✓ Benachrichtigung gesendet — sie sollte in wenigen Sekunden ankommen", push_test_no_sub:"Aktivieren Sie zunächst die Benachrichtigungen in diesem Browser" },
+  pt: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"Regenerar sua rotina?", regen_confirm_body:"Sua sequência de {streak} dias permanecerá intacta. Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_body_nostreak:"Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_btn:"Sim, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota do dia", note_placeholder:"Como você se sentiu hoje (opcional)…", grace_day:"Dia de graça usado", none_excludes:"Ao selecionar \"nenhuma\", as outras opções ficam desativadas", push_test_btn:"Testar notificação", push_test_ok:"✓ Notificação enviada — deve chegar em alguns segundos", push_test_no_sub:"Ative primeiro as notificações neste navegador" },
+  it: { mark_all:"Seleziona tutti", unmark_all:"Deseleziona tutti", regen_confirm_title:"Rigenerare la tua routine?", regen_confirm_body:"La tua serie di {streak} giorni rimarrà intatta. Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_body_nostreak:"Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_btn:"Sì, rigenera", regen_cancel_btn:"Annulla", note_label:"Nota del giorno", note_placeholder:"Come ti sei sentito oggi (facoltativo)…", grace_day:"Giorno di grazia usato", none_excludes:"Selezionando \"nessuna\", le altre opzioni vengono disattivate", push_test_btn:"Prova notifica", push_test_ok:"✓ Notifica inviata — dovrebbe arrivare in pochi secondi", push_test_no_sub:"Attiva prima le notifiche in questo browser" },
+  ea: { mark_all:"تحديد الكل", unmark_all:"إلغاء التحديد", regen_confirm_title:"إعادة إنشاء روتينك؟", regen_confirm_body:"سلسلتك البالغة {streak} يومًا ستبقى سليمة. سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_body_nostreak:"سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_btn:"نعم، إعادة الإنشاء", regen_cancel_btn:"إلغاء", note_label:"ملاحظة اليوم", note_placeholder:"كيف شعرت اليوم (اختياري)…", grace_day:"تم استخدام يوم السماح", none_excludes:"عند اختيار \"لا شيء\"، يتم تعطيل الخيارات الأخرى", push_test_btn:"اختبر الإشعار", push_test_ok:"✓ تم إرسال الإشعار — يجب أن يصل خلال ثوانٍ", push_test_no_sub:"فعّل الإشعارات أولاً في هذا المتصفح" }
 };
 
 /* ───────────────── GOALS & CONTRAINDICATIONS ───────────────── */
@@ -366,9 +365,9 @@ const C = {
   textDim: "#4a5578",
   textMuted: "#8590aa",
   textGhost: "#b5bdd0",
-  brand1: "#5b7fd4",
-  brand2: "#1abfe8",
-  brandGrad: "linear-gradient(135deg,#5b7fd4,#1abfe8)",
+  brand1: "#0f6e56",
+  brand2: "#5DCAA5",
+  brandGrad: "linear-gradient(135deg,#0f6e56,#5DCAA5)",
   morning: { bg: "#fff6ec", border: "#fae2c4", text: "#854f0b", icon: "#b7791f" },
   afternoon: { bg: "#fdeee6", border: "#f6d3c2", text: "#993c1d", icon: "#c25420" },
   night: { bg: "#eeedfe", border: "#d8d5f2", text: "#3c3489", icon: "#534ab7" },
@@ -396,11 +395,11 @@ const fireConfetti = () => {
     if (!window.confetti) return;
     window.confetti({
       particleCount: 90, spread: 75, origin: { y: 0.6 },
-      colors: ["#5b7fd4", "#1abfe8", "#00d4ff", "#ffd700", "#ffffff"],
+      colors: ["#0f6e56", "#5DCAA5", "#7ed9b8", "#ffd700", "#ffffff"],
       zIndex: 9999
     });
-    setTimeout(() => window.confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors: ["#5b7fd4", "#1abfe8"] }), 250);
-    setTimeout(() => window.confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors: ["#1abfe8", "#00d4ff"] }), 400);
+    setTimeout(() => window.confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors: ["#0f6e56", "#5DCAA5"] }), 250);
+    setTimeout(() => window.confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors: ["#5DCAA5", "#7ed9b8"] }), 400);
   };
   if (window.confetti) { fire(); return; }
   if (document.getElementById("neo-confetti-lib")) { setTimeout(fire, 300); return; }
@@ -458,8 +457,8 @@ function BrandOrb({ size = 84, variant = "brand" }) {
 
   const isSuccess = variant === "success";
   // Ring colors: brand uses cyan/blue pulse, success uses teal/green
-  const ringA = isSuccess ? C.success : C.brand2;      // #0f6e56  /  #1abfe8
-  const ringB = isSuccess ? "#5DCAA5" : C.brand1;      // teal-400 /  #5b7fd4
+  const ringA = isSuccess ? C.success : C.brand2;      // both green now
+  const ringB = isSuccess ? "#5DCAA5" : C.brand1;      // both green now
 
   const ringStyle = (delay, color) => ({
     position: "absolute", inset: 0, borderRadius: "50%",
@@ -588,7 +587,7 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
     >
       <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
         <div style={{
-          width: 22, height: 22, borderRadius: 7, flexShrink: 0, marginTop: 1,
+          width: 22, height: 22, borderRadius: "50%", flexShrink: 0, marginTop: 1,
           border: checked ? "none" : `1.5px solid ${C.borderStrong}`,
           background: checked ? C.brandGrad : C.surface,
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -722,7 +721,7 @@ function MilestoneModal({ days, lang, onClose, t }) {
 
         <div style={{
           width: 72, height: 72, borderRadius: "50%",
-          background: "linear-gradient(135deg,#fff6ec,#f0fbfe)",
+          background: "linear-gradient(135deg,#fff6ec,#e8f5ef)",
           border: `1px solid ${C.border}`,
           display: "flex", alignItems: "center", justifyContent: "center",
           margin: "0 auto 18px", color: "#b7791f",
@@ -798,7 +797,7 @@ function NotificationGate({ lang, onGranted }) {
   const isDenied = state === "denied";
   const isDefault = state === "default";
 
-  const iconBg = isDenied ? C.warningBg : "linear-gradient(135deg,#fafbff,#f0fbfe)";
+  const iconBg = isDenied ? C.warningBg : "linear-gradient(135deg,#fafefb,#e8f5ef)";
   const iconColor = isDenied ? C.warning : C.brand1;
 
   return (
@@ -888,7 +887,7 @@ function RegenConfirmModal({ streak, t, onCancel, onConfirm }) {
       }}>
         <div style={{
           width: 56, height: 56, borderRadius: "50%",
-          background: "#f0fbfe", border: `1px solid ${C.border}`,
+          background: "#e8f5ef", border: `1px solid ${C.border}`,
           display: "flex", alignItems: "center", justifyContent: "center",
           margin: "0 auto 18px", color: C.brand1
         }}>
@@ -955,7 +954,7 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
             fontSize: 12, color: C.textMuted, fontWeight: 600,
             fontFamily: "Oswald,sans-serif", letterSpacing: "0.05em"
           }}>
-            <span style={{ color: goals.length >= MAX_GOALS ? "#2c4a8f" : C.textMuted }}>
+            <span style={{ color: goals.length >= MAX_GOALS ? "#0f6e56" : C.textMuted }}>
               {goals.length}
             </span>
             {" / "}{MAX_GOALS}
@@ -968,16 +967,16 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
                 <div key={g.id} onClick={() => tg(g.id)} style={{
                   padding: "14px 12px", borderRadius: 14,
                   cursor: capped ? "not-allowed" : "pointer",
-                  border: `1px solid ${sel ? "#2c4a8f" : C.border}`,
-                  background: sel ? "#f0fbfe" : C.surface,
+                  border: `1px solid ${sel ? "#0f6e56" : C.border}`,
+                  background: sel ? "#e8f5ef" : C.surface,
                   opacity: capped ? 0.4 : 1,
                   filter: capped ? "grayscale(0.5)" : "none",
                   transition: "all 0.2s"
                 }}>
-                  <div style={{ marginBottom: 8, color: sel ? "#2c4a8f" : C.textDim, display: "flex", alignItems: "center", height: 22 }}>
+                  <div style={{ marginBottom: 8, color: sel ? "#0f6e56" : C.textDim, display: "flex", alignItems: "center", height: 22 }}>
                     {GOAL_ICON[g.id] ? GOAL_ICON[g.id](22) : null}
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: sel ? "#2c4a8f" : C.text, lineHeight: 1.3, fontFamily: "Oswald,sans-serif" }}>{g.label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: sel ? "#0f6e56" : C.text, lineHeight: 1.3, fontFamily: "Oswald,sans-serif" }}>{g.label}</div>
                   <div style={{ fontSize: 11, color: C.textMuted, marginTop: 3, lineHeight: 1.4 }}>{g.desc}</div>
                 </div>
               );
@@ -1008,7 +1007,7 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
                 pointerEvents: disabled ? "none" : "auto"
               }}>
                 <div style={{
-                  width: 20, height: 20, borderRadius: 6,
+                  width: 20, height: 20, borderRadius: "50%",
                   border: sel ? "none" : `1.5px solid ${C.borderStrong}`,
                   background: sel ? color : "transparent",
                   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
@@ -1036,7 +1035,7 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
             {GOALS.filter(g => goals.includes(g.id)).map(g => (
               <span key={g.id} style={{
                 fontSize: 11, padding: "5px 12px 5px 10px", borderRadius: 20,
-                background: "#f0fbfe", color: C.brand1, border: `1px solid ${C.border}`,
+                background: "#e8f5ef", color: C.brand1, border: `1px solid ${C.border}`,
                 display: "inline-flex", alignItems: "center", gap: 6
               }}>{GOAL_ICON[g.id] ? GOAL_ICON[g.id](12) : null} {g.label}</span>
             ))}
@@ -1124,7 +1123,7 @@ function ProgressView({ history, streak, record, routine, t }) {
   const barColor = (r) => {
     if (r === null) return C.border;
     if (r >= 1) return C.brandGrad;
-    if (r >= 0.5) return "#c8d4ee";
+    if (r >= 0.5) return "#b8e0cf";
     return "#eef0f6";
   };
 
@@ -1138,7 +1137,7 @@ function ProgressView({ history, streak, record, routine, t }) {
       {/* Streak hero card with sparkline */}
       <div style={{
         padding: 18, border: `1px solid ${C.border}`, borderRadius: 16,
-        marginBottom: 14, background: "linear-gradient(135deg,#fafbff,#f0fbfe)"
+        marginBottom: 14, background: "linear-gradient(135deg,#fafefb,#e8f5ef)"
       }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <div>
@@ -1216,7 +1215,7 @@ function ProgressView({ history, streak, record, routine, t }) {
 }
 
 /* ───────────────── SETTINGS VIEW ───────────────── */
-function SettingsView({ rems, onRem, onNotif, notifOk, onRegen, routine, compactManual, onCompactToggle, t }) {
+function SettingsView({ rems, onRem, onNotif, notifOk, onRegen, routine, compactManual, onCompactToggle, t, onPushTest }) {
   const ps = [
     { id: "morning", c: C.morning },
     { id: "afternoon", c: C.afternoon },
@@ -1234,14 +1233,24 @@ function SettingsView({ rems, onRem, onNotif, notifOk, onRegen, routine, compact
         {!notifOk && (
           <button onClick={onNotif} style={{
             width: "100%", padding: 12, borderRadius: 12,
-            background: "#f0fbfe", border: `1px solid ${C.border}`,
+            background: "#e8f5ef", border: `1px solid ${C.border}`,
             color: C.brand1, fontSize: 13, cursor: "pointer", marginBottom: 14, fontWeight: 500
           }}>{t.notif_btn}</button>
         )}
         {notifOk && (
-          <div style={{ padding: "8px 12px", background: C.successBg, borderRadius: 10, marginBottom: 14, fontSize: 12, color: C.success }}>
-            ✓ {t.notif_granted}
-          </div>
+          <>
+            <div style={{ padding: "8px 12px", background: C.successBg, borderRadius: 10, marginBottom: 10, fontSize: 12, color: C.success }}>
+              ✓ {t.notif_granted}
+            </div>
+            <button onClick={onPushTest} style={{
+              width: "100%", padding: 10, borderRadius: 10,
+              background: "transparent", border: `1px solid ${C.border}`,
+              color: C.textDim, fontSize: 12, cursor: "pointer", marginBottom: 14, fontWeight: 500,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6
+            }}>
+              {Icon.bell(12)} {t.push_test_btn}
+            </button>
+          </>
         )}
         {ps.map(p => {
           if (!routine?.[p.id]?.length) return null;
@@ -1421,7 +1430,7 @@ export default function App() {
         }
         if (localHistory && Object.keys(localHistory).length) setHistory(localHistory);
         if (cR) setChecks(JSON.parse(cR.value));
-       if (remR) {
+        if (remR) {
           const parsedRems = JSON.parse(remR.value);
           const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
           if (parsedRems.tz !== currentTz) {
@@ -1431,19 +1440,6 @@ export default function App() {
           } else {
             setRems(parsedRems);
           }
-        } else {
-          // Sin reminders locales: persistir el estado inicial con tz del dispositivo.
-          // Esto garantiza que incluso en modo local-only (bridge caído) quede
-          // algo en localStorage, y que cuando el bridge vuelva se sincronice.
-          const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
-          const initialRems = {
-            morning: { time: "08:00", enabled: true },
-            afternoon: { time: "14:00", enabled: false },
-            night: { time: "21:00", enabled: true },
-            tz: currentTz
-          };
-          setRems(initialRems);
-          storage.set("neo-reminders", JSON.stringify(initialRems));
         }
         if (mR) setShownMilestones(JSON.parse(mR.value));
         if (cmR) setCompactManual(JSON.parse(cmR.value));
@@ -1494,7 +1490,7 @@ export default function App() {
             __nrSyncPending.routine_ts = localRoutineTs;
           }
 
-       // history
+          // history
           if (remote.history_ts > localHistoryTs && remote.history) {
             try { localStorage.setItem("neo-history", JSON.stringify(remote.history)); } catch {}
             try { localStorage.setItem("neo-history-ts", String(remote.history_ts)); } catch {}
@@ -1502,49 +1498,6 @@ export default function App() {
           } else if (localHistoryTs > remote.history_ts && localHistory && Object.keys(localHistory).length) {
             __nrSyncPending.history = localHistory;
             __nrSyncPending.history_ts = localHistoryTs;
-          }
-
-          // reminders (cross-device sync + tz siempre local)
-          const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
-          const localRemindersTs = getLocalTs("neo-reminders");
-          const localRemindersRaw = remR ? JSON.parse(remR.value) : null;
-
-          if (remote.reminders_ts > localRemindersTs && remote.reminders) {
-            // El servidor tiene reminders más nuevos (editados en otro dispositivo).
-            // Aceptamos los horarios/enabled pero forzamos tz al local.
-            const merged = { ...remote.reminders, tz: currentTz };
-            try { localStorage.setItem("neo-reminders", JSON.stringify(merged)); } catch {}
-            try { localStorage.setItem("neo-reminders-ts", String(remote.reminders_ts)); } catch {}
-            setRems(merged);
-
-            // Si el tz remoto era distinto del local, re-sincronizamos para que
-            // el servidor aprenda el tz de este dispositivo (último-en-escribir-gana).
-            if (remote.reminders.tz !== currentTz) {
-              const newTs = Date.now();
-              __nrSyncPending.reminders = merged;
-              __nrSyncPending.reminders_ts = newTs;
-              try { localStorage.setItem("neo-reminders-ts", String(newTs)); } catch {}
-            }
-          } else if (localRemindersTs > remote.reminders_ts && localRemindersRaw) {
-            // Local es más nuevo — encolar push
-            __nrSyncPending.reminders = localRemindersRaw;
-            __nrSyncPending.reminders_ts = localRemindersTs;
-          } else if (!remote.reminders && !localRemindersRaw) {
-            // Ni servidor ni local tienen reminders. Es un usuario nuevo o recién
-            // onboardeado. Persistimos el estado inicial del useState (con tz local)
-            // para que el cron de Fase 6 tenga el tz desde el principio.
-            const initialRems = {
-              morning: { time: "08:00", enabled: true },
-              afternoon: { time: "14:00", enabled: false },
-              night: { time: "21:00", enabled: true },
-              tz: currentTz
-            };
-            const initTs = Date.now();
-            try { localStorage.setItem("neo-reminders", JSON.stringify(initialRems)); } catch {}
-            try { localStorage.setItem("neo-reminders-ts", String(initTs)); } catch {}
-            setRems(initialRems);
-            __nrSyncPending.reminders = initialRems;
-            __nrSyncPending.reminders_ts = initTs;
           }
         }
       } catch {
@@ -1823,13 +1776,6 @@ const confirmRegen = () => {
       setRoutine(fb.routine); setAiMsg(fb.personalMessage); setWarns(fb.warnings);
       setAppState("dashboard");
     }
-
-    // Tag user as active in OneSignal (fire-and-forget, no bloquea UX).
-    // Se ejecuta tras setAppState("dashboard") en ambos paths (éxito y fallback):
-    // si el usuario completó onboarding, debe recibir reminders aunque la IA fallara.
-    if (bridge.isAvailable()) {
-      bridge.onesignalTag("add").catch(() => {});
-    }
   };
 
   /* Format view date */
@@ -2004,7 +1950,7 @@ const confirmRegen = () => {
                         width: "100%",
                         display: "flex", alignItems: "center", gap: 10,
                         padding: "11px 14px",
-                        background: showRoutineInfo ? C.bgSoft : "linear-gradient(135deg,#fafbff,#f0fbfe)",
+                        background: showRoutineInfo ? C.bgSoft : "linear-gradient(135deg,#fafefb,#e8f5ef)",
                         border: `1px solid ${C.border}`,
                         borderRadius: 12,
                         cursor: "pointer",
@@ -2042,7 +1988,7 @@ const confirmRegen = () => {
                         {aiMsg && (
                           <div style={{
                             padding: "12px 14px",
-                            background: "linear-gradient(135deg,#fafbff,#f0fbfe)",
+                            background: "linear-gradient(135deg,#fafefb,#e8f5ef)",
                             border: `1px solid ${C.border}`,
                             borderRadius: 12,
                             marginBottom: warns.length > 0 ? 8 : 0
@@ -2122,7 +2068,7 @@ const confirmRegen = () => {
                 {isToday && pct === 100 && (
                   <div style={{
                     marginTop: 24, padding: "28px 20px 24px",
-                    background: "linear-gradient(135deg,#e1f5ee,#f0fbfe)",
+                    background: "linear-gradient(135deg,#e1f5ee,#e8f5ef)",
                     border: `1px solid ${C.success}22`, borderRadius: 16, textAlign: "center",
                     display: "flex", flexDirection: "column", alignItems: "center", gap: 18,
                     animation: "fadeUp 0.4s"
@@ -2152,6 +2098,20 @@ const confirmRegen = () => {
                 }}
                 notifOk={notif} onRegen={regen} routine={routine}
                 compactManual={compactManual} onCompactToggle={toggleCompactManual}
+                onPushTest={async () => {
+                  if (!bridge.isAvailable()) return;
+                  try {
+                    const res = await bridge.pushTest();
+                    if (res.ok && res.data?.ok) {
+                      setToast(t.push_test_ok);
+                    } else {
+                      setToast(t.push_test_no_sub);
+                    }
+                  } catch {
+                    setToast(t.push_test_no_sub);
+                  }
+                  setTimeout(() => setToast(null), 5000);
+                }}
                 t={t}
               />
             )}

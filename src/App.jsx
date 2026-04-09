@@ -98,7 +98,7 @@ const bridge = (() => {
     }
   };
 
-  return {
+return {
     handshake,
     isAvailable: () => available === true,
     isResolved:  () => available !== null,
@@ -106,10 +106,10 @@ const bridge = (() => {
     pushState:   (p)   => send("nr-tracker-state-push", p).then(r => r.data),
     generate:    (p)   => send("nr-tracker-generate", p, 60000).then(r => ({ status: r.status, data: r.data, ok: r.ok })),
     quota:       ()    => send("nr-tracker-quota", null).then(r => r.data),
-    onesignalTag: (action) => send("nr-tracker-onesignal-tag", { action: action || "add" }).then(r => r.data)
+    onesignalTag: (action) => send("nr-tracker-onesignal-tag", { action: action || "add" }).then(r => r.data),
+    pushTest:    ()    => send("nr-tracker-push-test", {}).then(r => ({ ok: r.ok, status: r.status, data: r.data }))
   };
 })();
-
 /* ───────────────── STORAGE + REMOTE SYNC ───────────────── */
 
 /**

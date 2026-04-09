@@ -460,6 +460,10 @@ function BrandOrb({ size = 84, variant = "brand" }) {
   const ringA = "#1abfe8";  // cyan
   const ringB = "#5b7fd4";  // azul
 
+  // El wrapper es 1.5× el tamaño del logo → deja aire para los rings
+  // sin tener que cambiar los `size` que se pasan desde fuera.
+  const wrapperSize = Math.round(size * 1.5);
+
   const ringStyle = (delay, color) => ({
     position: "absolute", inset: 0, borderRadius: "50%",
     border: `2px solid ${color}`,
@@ -467,19 +471,16 @@ function BrandOrb({ size = 84, variant = "brand" }) {
     pointerEvents: "none"
   });
 
-  // El centro ocupa el 70% del wrapper → deja aire entre logo y rings
-  const centerSize = Math.round(size * 0.7);
-
   const centerCommon = {
-    width: centerSize, height: centerSize, borderRadius: "50%",
+    width: size, height: size, borderRadius: "50%",
     position: "relative", zIndex: 2,
     animation: "orbBreathe 2.8s ease-in-out infinite"
   };
 
-  const checkSize = Math.round(centerSize * 0.55);
+  const checkSize = Math.round(size * 0.5);
 
   return (
-    <div style={{ position: "relative", width: size, height: size, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ position: "relative", width: wrapperSize, height: wrapperSize, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
       <div style={ringStyle(0, ringA)} />
       <div style={ringStyle(0.9, ringB)} />
       <div style={ringStyle(1.8, ringA)} />
@@ -1033,8 +1034,8 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
       ti: t.step3_title, su: t.step3_sub, ok: true,
       body: (
         <div style={{ textAlign: "center", padding: "20px 0" }}>
-          <div style={{ marginBottom: 22, display: "flex", justifyContent: "center" }}><BrandOrb size={72} /></div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 22 }}>
+          <div style={{ marginBottom: 36, display: "flex", justifyContent: "center" }}><BrandOrb size={72} /></div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 32 }}>
             {GOALS.filter(g => goals.includes(g.id)).map(g => (
               <span key={g.id} style={{
                 fontSize: 11, padding: "5px 12px 5px 10px", borderRadius: 20,
@@ -1099,7 +1100,7 @@ function Generating({ t }) {
       </div>
       <div style={{ display: "flex", gap: 8 }}>
         {[0, 1, 2].map(i => (
-          <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: C.brand2, animation: `d${i + 1} 1.4s ease-in-out infinite` }} />
+          <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: "#1abfe8", animation: `d${i + 1} 1.4s ease-in-out infinite` }} />
         ))}
       </div>
     </div>

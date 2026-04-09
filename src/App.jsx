@@ -349,11 +349,19 @@ const MILESTONES = [7, 14, 30, 60, 100];
 /* ───────────────── PROMPT ───────────────── */
 const buildPrompt = (lang) => {
   const ln = {es:"Spanish",en:"English",fr:"French",de:"German",pt:"Portuguese",it:"Italian",ea:"Arabic"}[lang]||"English";
-  return `You are NeoRejuvenation assistant by Antonio Moll. Respond ONLY in ${ln}. All fields in ${ln}.
+  const native = {es:"español",en:"English",fr:"français",de:"Deutsch",pt:"português",it:"italiano",ea:"العربية"}[lang]||"English";
+  return `You are NeoRejuvenation assistant by Antonio Moll.
+
+⚠️ CRITICAL LANGUAGE REQUIREMENT ⚠️
+You MUST respond EXCLUSIVELY in ${ln} (${native}). Every single text field — name, dose, brand, benefits, notes, personalMessage, warnings — MUST be written in ${ln}. DO NOT use English for any field unless ${ln} IS English. If you write any text in a language other than ${ln}, the response is invalid.
+
 FUNDAMENTAL: Vitamin C (morning+night, SOLARAY 1000mg Retard), Reishi (morning+night with food, Kinoko 1500mg — CONTRAINDICATED: anticoagulants/autoimmune/surgery).
 OPTIONAL: Hyaluronic Acid (night, Solgar), Resveratrol (morning, Solgar/Revidox), Cordyceps (night — CONTRA: pregnancy/antipsychotics/anticoagulants), Shiitake+Maitake (morning), SOD (morning, Douglas), Milk Thistle (morning, Soria Natural), Omega-3 (night, Lamberts), Pomegranate 2-3x/wk (Keriba), Collagen+Mg every 2-3 days (Ana Maria Lajusticia), Horsetail+B (morning, Redenhair — CONTRA: pregnancy/antiretrovirals).
 RULES: VitC+Reishi mandatory unless contraindicated. Min 3 max 8. Respect all contraindications.
-Respond ONLY valid JSON: {"routine":{"morning":[{"id":"string","name":"string","dose":"string","brand":"string","benefits":["string"],"notes":"string","frequency":"daily|alternate|2-3weekly"}],"afternoon":[],"night":[]},"personalMessage":"string","warnings":["string"]}`;
+
+Respond ONLY with valid JSON (no markdown, no explanations): {"routine":{"morning":[{"id":"string","name":"string in ${ln}","dose":"string in ${ln}","brand":"string","benefits":["string in ${ln}"],"notes":"string in ${ln}","frequency":"daily|alternate|2-3weekly"}],"afternoon":[],"night":[]},"personalMessage":"string in ${ln}","warnings":["string in ${ln}"]}
+
+REMINDER: ALL text fields must be in ${ln} (${native}). Product brand names (SOLARAY, Kinoko, Solgar, etc.) stay as-is. Everything else in ${ln}.`;
 };
 
 /* ───────────────── LIGHT THEME COLORS ───────────────── */
@@ -1133,7 +1141,7 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
     {
       ti: t.step3_title, su: t.step3_sub, ok: true,
       body: (
-        <div style={{ textAlign: "center", padding: "40px 0 20px" }}>
+        <div style={{ textAlign: "center", padding: "60px 0 20px" }}>
           <div style={{ marginBottom: 36, display: "flex", justifyContent: "center" }}><BrandOrb size={72} /></div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 32 }}>
             {GOALS.filter(g => goals.includes(g.id)).map(g => (
@@ -1357,7 +1365,6 @@ function SettingsView({ rems, onRem, onNotif, notifOk, onRegen, routine, compact
           </>
         )}
         {ps.map(p => {
-          if (!routine?.[p.id]?.length) return null;
           return (
             <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 0", borderBottom: `1px solid ${C.border}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

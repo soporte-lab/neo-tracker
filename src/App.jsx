@@ -393,10 +393,10 @@ const injectFonts = () => {
   if (document.getElementById("neo-fonts")) return;
   const l = document.createElement("link");
   l.id = "neo-fonts"; l.rel = "stylesheet";
-  l.href = "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=Almarai:wght@400;700&display=swap";
+  l.href = "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Almarai:wght@400;700&display=swap";
   document.head.appendChild(l);
   const s = document.createElement("style");
-  s.textContent = `*{box-sizing:border-box;margin:0;padding:0}body{background:${C.bg}}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#d6dbe8;border-radius:2px}@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.05);opacity:1}}@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes d1{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}@keyframes d2{0%,20%,80%,100%{transform:scale(0)}60%{transform:scale(1)}}@keyframes d3{0%,40%,100%{transform:scale(0)}80%{transform:scale(1.2)}}@keyframes orbRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.7);opacity:0}}@keyframes orbBreathe{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.06);opacity:1}}`;
+  s.textContent = `*{box-sizing:border-box;margin:0;padding:0}body{background:${C.bg};font-feature-settings:"cv11","ss01","ss03";-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.nr-tnum{font-variant-numeric:tabular-nums}.nr-mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-feature-settings:"zero","ss01"}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#d6dbe8;border-radius:2px}@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.05);opacity:1}}@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes d1{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}@keyframes d2{0%,20%,80%,100%{transform:scale(0)}60%{transform:scale(1)}}@keyframes d3{0%,40%,100%{transform:scale(0)}80%{transform:scale(1.2)}}@keyframes orbRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.7);opacity:0}}@keyframes orbBreathe{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.06);opacity:1}}`;
   document.head.appendChild(s);
 };
 
@@ -623,13 +623,20 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
             <span style={{
-              fontFamily: "Oswald,sans-serif",
+              fontFamily: "Inter, sans-serif",
               fontWeight: 600,
               fontSize: 13,
+              letterSpacing: "-0.01em",
               color: checked ? C.textMuted : C.text,
               textDecoration: checked ? "line-through" : "none"
             }}>{supp.name}</span>
-            <span style={{ fontSize: 11, color: checked ? C.textGhost : C.textMuted }}>{supp.dose}</span>
+            <span style={{
+              fontSize: 11,
+              color: checked ? C.textGhost : C.textMuted,
+              fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+              fontFeatureSettings: '"zero", "ss01"',
+              letterSpacing: "-0.01em"
+            }}>{supp.dose}</span>
             {supp.frequency && supp.frequency !== "daily" && (
               <span style={{
                 fontSize: 9, padding: "2px 7px", borderRadius: 20,
@@ -711,7 +718,7 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {!readOnly && (
-            <span style={{ fontSize: 10, color: C.textMuted, fontFamily: "DM Sans, sans-serif", fontWeight: 500 }}>
+            <span style={{ fontSize: 10, color: C.textMuted, fontFamily: "Inter, sans-serif", fontWeight: 500 }}>
               {allDone ? t.unmark_all : t.mark_all}
             </span>
           )}
@@ -878,7 +885,7 @@ function NotificationGate({ lang, onGranted }) {
           padding: "14px 28px", borderRadius: 12,
           background: "transparent", border: `1px solid ${C.borderStrong}`,
           color: C.textDim, fontSize: 13, cursor: "pointer",
-          fontFamily: "DM Sans, sans-serif", fontWeight: 500
+          fontFamily: "Inter, sans-serif", fontWeight: 500
         }}>
           {g.retry}
         </button>
@@ -889,7 +896,7 @@ function NotificationGate({ lang, onGranted }) {
           padding: "14px 28px", borderRadius: 12,
           background: "transparent", border: `1px solid ${C.borderStrong}`,
           color: C.textDim, fontSize: 13, cursor: "pointer",
-          fontFamily: "DM Sans, sans-serif", fontWeight: 500
+          fontFamily: "Inter, sans-serif", fontWeight: 500
         }}>
           {g.unsupported_continue}
         </button>
@@ -935,7 +942,7 @@ function RegenConfirmModal({ streak, t, onCancel, onConfirm }) {
             flex: 1, padding: 13, borderRadius: 12,
             background: "transparent", border: `1px solid ${C.borderStrong}`,
             color: C.textDim, fontSize: 13, cursor: "pointer",
-            fontFamily: "DM Sans, sans-serif", fontWeight: 500
+            fontFamily: "Inter, sans-serif", fontWeight: 500
           }}>{t.regen_cancel_btn}</button>
           <button onClick={onConfirm} style={{
             flex: 1.3, padding: 13, borderRadius: 12,
@@ -1376,7 +1383,9 @@ function SettingsView({ rems, onRem, onNotif, notifOk, onRegen, routine, compact
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <input type="time" value={rems[p.id]?.time || "08:00"} onChange={e => onRem(p.id, "time", e.target.value)} style={{
                   background: C.bgSoft, border: `1px solid ${C.border}`,
-                  borderRadius: 8, padding: "6px 10px", color: C.text, fontSize: 12
+                  borderRadius: 8, padding: "6px 10px", color: C.text, fontSize: 12,
+                  fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                  fontFeatureSettings: '"zero", "ss01"'
                 }} />
                 <div onClick={() => onRem(p.id, "enabled", !rems[p.id]?.enabled)} style={{
                   width: 38, height: 22, borderRadius: 11,
@@ -1925,7 +1934,7 @@ const confirmRegen = () => {
   const isRTL = lang === "ea";
   const bodyFont = isRTL
     ? "Almarai, -apple-system, BlinkMacSystemFont, sans-serif"
-    : "DM Sans, -apple-system, BlinkMacSystemFont, sans-serif";
+    : "Inter, -apple-system, BlinkMacSystemFont, sans-serif";
 
   return (
     <div dir={isRTL ? "rtl" : "ltr"} style={{

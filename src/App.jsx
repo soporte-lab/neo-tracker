@@ -456,9 +456,9 @@ function BrandOrb({ size = 84, variant = "brand" }) {
   const [imgFailed, setImgFailed] = useState(false);
 
   const isSuccess = variant === "success";
-  // Ring colors: brand uses cyan/blue pulse, success uses teal/green
-  const ringA = isSuccess ? C.success : C.brand2;      // both green now
-  const ringB = isSuccess ? "#5DCAA5" : C.brand1;      // both green now
+  // Rings siempre en azul/cyan — contraste con el verde de la app
+  const ringA = "#1abfe8";  // cyan
+  const ringB = "#5b7fd4";  // azul
 
   const ringStyle = (delay, color) => ({
     position: "absolute", inset: 0, borderRadius: "50%",
@@ -467,13 +467,16 @@ function BrandOrb({ size = 84, variant = "brand" }) {
     pointerEvents: "none"
   });
 
+  // El centro ocupa el 70% del wrapper → deja aire entre logo y rings
+  const centerSize = Math.round(size * 0.7);
+
   const centerCommon = {
-    width: size, height: size, borderRadius: "50%",
+    width: centerSize, height: centerSize, borderRadius: "50%",
     position: "relative", zIndex: 2,
     animation: "orbBreathe 2.8s ease-in-out infinite"
   };
 
-  const checkSize = Math.round(size * 0.5);
+  const checkSize = Math.round(centerSize * 0.55);
 
   return (
     <div style={{ position: "relative", width: size, height: size, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
@@ -1365,20 +1368,7 @@ export default function App() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  useEffect(() => {
-    injectFonts();
-
-    // Registrar service worker para cachear assets del bundle.
-    // Solo en producción (no en dev local de Vite) y solo si el navegador lo soporta.
-    if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
-      navigator.serviceWorker
-        .register('/sw.js', { scope: '/' })
-        .catch((err) => {
-          // Silent fail — la app funciona perfecto sin SW, solo pierde el caching
-          if (window.console) console.warn('[nr-tracker] SW register failed:', err);
-        });
-    }
-  }, []);
+  useEffect(() => { injectFonts(); }, []);
 
 /* Check notification permission on load */
   useEffect(() => {

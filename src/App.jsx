@@ -576,10 +576,19 @@ const Ring = ({ pct, size = 72, stroke = 6, showLabel = true }) => {
 /* ───────────────── SUPPLEMENT CARD ───────────────── */
 function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
   const [exp, setExp] = useState(false);
+
+  // Cuando activamos modo compacto, colapsar la card automáticamente.
+  // Evita que cards previamente expandidas sigan abiertas tras cambiar el toggle.
+  useEffect(() => {
+    if (compact) setExp(false);
+  }, [compact]);
+
   const showExpanded = !compact || exp;
+  const hasNotes = !!supp.notes;
+
   return (
     <div
-      onClick={() => { if (readOnly) return; if (compact && !exp) { setExp(true); return; } onToggle(supp.id); }}
+      onClick={() => { if (readOnly) return; onToggle(supp.id); }}
       style={{
         background: checked ? C.surfaceDone : C.surface,
         border: `1px solid ${C.border}`,
@@ -631,19 +640,24 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
               {supp.benefits && supp.benefits.length > 0 && <> · {supp.benefits.join(" · ")}</>}
             </div>
           )}
-          {showExpanded && supp.notes && (
-            <>
-              <div style={{ marginTop: 6 }}>
-                <button onClick={e => { e.stopPropagation(); setExp(v => !v); }} style={{ background: "none", border: "none", color: C.textMuted, fontSize: 10, cursor: "pointer", padding: 0, textDecoration: "underline" }}>
-                  {exp ? t.hide_info : t.more_info}
-                </button>
-              </div>
-              {exp && (
-                <div style={{ marginTop: 6, padding: "8px 10px", background: C.bgSoft, borderRadius: 8, fontSize: 11, color: C.textDim, lineHeight: 1.55 }}>
-                  {supp.notes}
-                </div>
-              )}
-            </>
+          {/* Botón "Más info" visible siempre si hay notas, incluso en modo compacto */}
+          {hasNotes && (
+            <div style={{ marginTop: compact && !exp ? 4 : 6 }}>
+              <button
+                onClick={e => { e.stopPropagation(); setExp(v => !v); }}
+                style={{
+                  background: "none", border: "none", color: C.textMuted,
+                  fontSize: 10, cursor: "pointer", padding: 0, textDecoration: "underline"
+                }}
+              >
+                {exp ? t.hide_info : t.more_info}
+              </button>
+            </div>
+          )}
+          {hasNotes && exp && (
+            <div style={{ marginTop: 6, padding: "8px 10px", background: C.bgSoft, borderRadius: 8, fontSize: 11, color: C.textDim, lineHeight: 1.55 }}>
+              {supp.notes}
+            </div>
           )}
         </div>
       </div>

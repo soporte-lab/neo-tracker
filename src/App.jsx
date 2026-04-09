@@ -1365,7 +1365,20 @@ export default function App() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  useEffect(() => { injectFonts(); }, []);
+  useEffect(() => {
+    injectFonts();
+
+    // Registrar service worker para cachear assets del bundle.
+    // Solo en producción (no en dev local de Vite) y solo si el navegador lo soporta.
+    if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
+      navigator.serviceWorker
+        .register('/sw.js', { scope: '/' })
+        .catch((err) => {
+          // Silent fail — la app funciona perfecto sin SW, solo pierde el caching
+          if (window.console) console.warn('[nr-tracker] SW register failed:', err);
+        });
+    }
+  }, []);
 
 /* Check notification permission on load */
   useEffect(() => {

@@ -623,10 +623,9 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
             <span style={{
-              fontFamily: "Inter, sans-serif",
+              fontFamily: "Oswald,sans-serif",
               fontWeight: 600,
               fontSize: 13,
-              letterSpacing: "-0.01em",
               color: checked ? C.textMuted : C.text,
               textDecoration: checked ? "line-through" : "none"
             }}>{supp.name}</span>
@@ -705,15 +704,15 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         onMouseEnter={e => { if (!readOnly) e.currentTarget.style.background = C.bgSoft; }}
         onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 10, background: tone.bg, color: tone.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <SectionIcon period={period} size={16} />
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 12, background: tone.bg, color: tone.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <SectionIcon period={period} size={20} />
           </div>
           <div>
-            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 600, fontSize: 14, color: C.text }}>
+            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 18, color: C.text, letterSpacing: "0.01em", lineHeight: 1.15 }}>
               {t[period]}
             </div>
-            <div style={{ fontSize: 10, color: C.textMuted }}>{t[period + "_hint"]}</div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{t[period + "_hint"]}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

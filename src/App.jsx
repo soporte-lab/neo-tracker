@@ -261,13 +261,13 @@ const NOTIF_GATE = {
 
 /* ───────────────── EXTRA TRANSLATIONS (added in phase 2 features) ───────────────── */
 const EXTRA_T = {
-  es: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"¿Regenerar tu rutina?", regen_confirm_body:"Tu racha de {streak} días se mantendrá intacta. Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_body_nostreak:"Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_btn:"Sí, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota del día", note_placeholder:"Cómo te has sentido hoy (opcional)…", grace_day:"Día de gracia usado", none_excludes:"Al seleccionar \"ninguna\", las demás opciones se desactivan", push_test_btn:"Probar notificación", push_test_ok:"✓ Notificación enviada — debería llegar en unos segundos", push_test_no_sub:"Activa primero las notificaciones en este navegador" },
-  en: { mark_all:"Mark all", unmark_all:"Unmark all", regen_confirm_title:"Regenerate your routine?", regen_confirm_body:"Your {streak}-day streak will stay intact. A new routine will be generated based on updated goals.", regen_confirm_body_nostreak:"A new routine will be generated based on updated goals.", regen_confirm_btn:"Yes, regenerate", regen_cancel_btn:"Cancel", note_label:"Today's note", note_placeholder:"How have you felt today (optional)…", grace_day:"Grace day used", none_excludes:"Selecting \"none\" disables the other options", push_test_btn:"Test notification", push_test_ok:"✓ Notification sent — it should arrive in a few seconds", push_test_no_sub:"Enable notifications in this browser first" },
-  fr: { mark_all:"Tout marquer", unmark_all:"Tout démarquer", regen_confirm_title:"Régénérer votre routine ?", regen_confirm_body:"Votre série de {streak} jours restera intacte. Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_body_nostreak:"Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_btn:"Oui, régénérer", regen_cancel_btn:"Annuler", note_label:"Note du jour", note_placeholder:"Comment vous sentez-vous aujourd'hui (facultatif)…", grace_day:"Jour de grâce utilisé", none_excludes:"En sélectionnant « aucune », les autres options sont désactivées", push_test_btn:"Tester la notification", push_test_ok:"✓ Notification envoyée — elle devrait arriver dans quelques secondes", push_test_no_sub:"Activez d'abord les notifications dans ce navigateur" },
-  de: { mark_all:"Alle markieren", unmark_all:"Alle demarkieren", regen_confirm_title:"Ihre Routine neu generieren?", regen_confirm_body:"Ihre {streak}-Tage-Serie bleibt erhalten. Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_body_nostreak:"Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_btn:"Ja, neu generieren", regen_cancel_btn:"Abbrechen", note_label:"Tagesnotiz", note_placeholder:"Wie haben Sie sich heute gefühlt (optional)…", grace_day:"Kulanztag verwendet", none_excludes:"Bei Auswahl von „keine\" werden die anderen Optionen deaktiviert", push_test_btn:"Benachrichtigung testen", push_test_ok:"✓ Benachrichtigung gesendet — sie sollte in wenigen Sekunden ankommen", push_test_no_sub:"Aktivieren Sie zunächst die Benachrichtigungen in diesem Browser" },
-  pt: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"Regenerar sua rotina?", regen_confirm_body:"Sua sequência de {streak} dias permanecerá intacta. Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_body_nostreak:"Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_btn:"Sim, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota do dia", note_placeholder:"Como você se sentiu hoje (opcional)…", grace_day:"Dia de graça usado", none_excludes:"Ao selecionar \"nenhuma\", as outras opções ficam desativadas", push_test_btn:"Testar notificação", push_test_ok:"✓ Notificação enviada — deve chegar em alguns segundos", push_test_no_sub:"Ative primeiro as notificações neste navegador" },
-  it: { mark_all:"Seleziona tutti", unmark_all:"Deseleziona tutti", regen_confirm_title:"Rigenerare la tua routine?", regen_confirm_body:"La tua serie di {streak} giorni rimarrà intatta. Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_body_nostreak:"Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_btn:"Sì, rigenera", regen_cancel_btn:"Annulla", note_label:"Nota del giorno", note_placeholder:"Come ti sei sentito oggi (facoltativo)…", grace_day:"Giorno di grazia usato", none_excludes:"Selezionando \"nessuna\", le altre opzioni vengono disattivate", push_test_btn:"Prova notifica", push_test_ok:"✓ Notifica inviata — dovrebbe arrivare in pochi secondi", push_test_no_sub:"Attiva prima le notifiche in questo browser" },
-  ea: { mark_all:"تحديد الكل", unmark_all:"إلغاء التحديد", regen_confirm_title:"إعادة إنشاء روتينك؟", regen_confirm_body:"سلسلتك البالغة {streak} يومًا ستبقى سليمة. سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_body_nostreak:"سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_btn:"نعم، إعادة الإنشاء", regen_cancel_btn:"إلغاء", note_label:"ملاحظة اليوم", note_placeholder:"كيف شعرت اليوم (اختياري)…", grace_day:"تم استخدام يوم السماح", none_excludes:"عند اختيار \"لا شيء\"، يتم تعطيل الخيارات الأخرى", push_test_btn:"اختبر الإشعار", push_test_ok:"✓ تم إرسال الإشعار — يجب أن يصل خلال ثوانٍ", push_test_no_sub:"فعّل الإشعارات أولاً في هذا المتصفح" }
+  es: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"¿Regenerar tu rutina?", regen_confirm_body:"Tu racha de {streak} días se mantendrá intacta. Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_body_nostreak:"Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_btn:"Sí, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota del día", note_placeholder:"Cómo te has sentido hoy (opcional)…", grace_day:"Día de gracia usado", none_excludes:"Al seleccionar \"ninguna\", las demás opciones se desactivan", push_test_btn:"Probar notificación", push_test_ok:"✓ Notificación enviada — debería llegar en unos segundos", push_test_no_sub:"Activa primero las notificaciones en este navegador", ios_install_title:"Instala la app para recibir notificaciones", ios_install_body:"En iPhone, las notificaciones solo funcionan con NeoRejuvenation instalada en tu pantalla de inicio. Son 3 pasos:", ios_install_step1:"Toca el botón Compartir en la barra inferior de Safari", ios_install_step2:"Busca y toca \"Añadir a pantalla de inicio\"", ios_install_step3:"Abre NeoRejuvenation desde el icono de tu pantalla de inicio", ios_install_note:"Importante: debes abrir siempre la app desde el icono del home, no desde Safari.", ios_install_cta:"Entendido" },
+  en: { mark_all:"Mark all", unmark_all:"Unmark all", regen_confirm_title:"Regenerate your routine?", regen_confirm_body:"Your {streak}-day streak will stay intact. A new routine will be generated based on updated goals.", regen_confirm_body_nostreak:"A new routine will be generated based on updated goals.", regen_confirm_btn:"Yes, regenerate", regen_cancel_btn:"Cancel", note_label:"Today's note", note_placeholder:"How have you felt today (optional)…", grace_day:"Grace day used", none_excludes:"Selecting \"none\" disables the other options", push_test_btn:"Test notification", push_test_ok:"✓ Notification sent — it should arrive in a few seconds", push_test_no_sub:"Enable notifications in this browser first", ios_install_title:"Install the app to receive notifications", ios_install_body:"On iPhone, notifications only work with NeoRejuvenation installed on your home screen. It takes 3 steps:", ios_install_step1:"Tap the Share button in Safari's bottom bar", ios_install_step2:"Find and tap \"Add to Home Screen\"", ios_install_step3:"Open NeoRejuvenation from the icon on your home screen", ios_install_note:"Important: always open the app from the home screen icon, not from Safari.", ios_install_cta:"Got it" },
+  fr: { mark_all:"Tout marquer", unmark_all:"Tout démarquer", regen_confirm_title:"Régénérer votre routine ?", regen_confirm_body:"Votre série de {streak} jours restera intacte. Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_body_nostreak:"Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_btn:"Oui, régénérer", regen_cancel_btn:"Annuler", note_label:"Note du jour", note_placeholder:"Comment vous sentez-vous aujourd'hui (facultatif)…", grace_day:"Jour de grâce utilisé", none_excludes:"En sélectionnant « aucune », les autres options sont désactivées", push_test_btn:"Tester la notification", push_test_ok:"✓ Notification envoyée — elle devrait arriver dans quelques secondes", push_test_no_sub:"Activez d'abord les notifications dans ce navigateur", ios_install_title:"Installez l'app pour recevoir des notifications", ios_install_body:"Sur iPhone, les notifications ne fonctionnent qu'avec NeoRejuvenation installée sur votre écran d'accueil. Cela prend 3 étapes :", ios_install_step1:"Touchez le bouton Partager dans la barre inférieure de Safari", ios_install_step2:"Trouvez et touchez « Sur l'écran d'accueil »", ios_install_step3:"Ouvrez NeoRejuvenation depuis l'icône de votre écran d'accueil", ios_install_note:"Important : ouvrez toujours l'app depuis l'icône de l'écran d'accueil, pas depuis Safari.", ios_install_cta:"Compris" },
+  de: { mark_all:"Alle markieren", unmark_all:"Alle demarkieren", regen_confirm_title:"Ihre Routine neu generieren?", regen_confirm_body:"Ihre {streak}-Tage-Serie bleibt erhalten. Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_body_nostreak:"Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_btn:"Ja, neu generieren", regen_cancel_btn:"Abbrechen", note_label:"Tagesnotiz", note_placeholder:"Wie haben Sie sich heute gefühlt (optional)…", grace_day:"Kulanztag verwendet", none_excludes:"Bei Auswahl von „keine\" werden die anderen Optionen deaktiviert", push_test_btn:"Benachrichtigung testen", push_test_ok:"✓ Benachrichtigung gesendet — sie sollte in wenigen Sekunden ankommen", push_test_no_sub:"Aktivieren Sie zunächst die Benachrichtigungen in diesem Browser", ios_install_title:"Installieren Sie die App für Benachrichtigungen", ios_install_body:"Auf dem iPhone funktionieren Benachrichtigungen nur, wenn NeoRejuvenation auf Ihrem Home-Bildschirm installiert ist. Es sind 3 Schritte:", ios_install_step1:"Tippen Sie auf den Teilen-Button in der unteren Leiste von Safari", ios_install_step2:"Suchen und tippen Sie auf „Zum Home-Bildschirm“", ios_install_step3:"Öffnen Sie NeoRejuvenation über das Symbol auf Ihrem Home-Bildschirm", ios_install_note:"Wichtig: Öffnen Sie die App immer über das Symbol des Home-Bildschirms, nicht über Safari.", ios_install_cta:"Verstanden" },
+  pt: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"Regenerar sua rotina?", regen_confirm_body:"Sua sequência de {streak} dias permanecerá intacta. Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_body_nostreak:"Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_btn:"Sim, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota do dia", note_placeholder:"Como você se sentiu hoje (opcional)…", grace_day:"Dia de graça usado", none_excludes:"Ao selecionar \"nenhuma\", as outras opções ficam desativadas", push_test_btn:"Testar notificação", push_test_ok:"✓ Notificação enviada — deve chegar em alguns segundos", push_test_no_sub:"Ative primeiro as notificações neste navegador", ios_install_title:"Instale o app para receber notificações", ios_install_body:"No iPhone, as notificações só funcionam com NeoRejuvenation instalada na sua tela inicial. São 3 passos:", ios_install_step1:"Toque no botão Compartilhar na barra inferior do Safari", ios_install_step2:"Encontre e toque em \"Adicionar à Tela de Início\"", ios_install_step3:"Abra NeoRejuvenation pelo ícone na sua tela inicial", ios_install_note:"Importante: sempre abra o app pelo ícone da tela inicial, não pelo Safari.", ios_install_cta:"Entendi" },
+  it: { mark_all:"Seleziona tutti", unmark_all:"Deseleziona tutti", regen_confirm_title:"Rigenerare la tua routine?", regen_confirm_body:"La tua serie di {streak} giorni rimarrà intatta. Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_body_nostreak:"Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_btn:"Sì, rigenera", regen_cancel_btn:"Annulla", note_label:"Nota del giorno", note_placeholder:"Come ti sei sentito oggi (facoltativo)…", grace_day:"Giorno di grazia usato", none_excludes:"Selezionando \"nessuna\", le altre opzioni vengono disattivate", push_test_btn:"Prova notifica", push_test_ok:"✓ Notifica inviata — dovrebbe arrivare in pochi secondi", push_test_no_sub:"Attiva prima le notifiche in questo browser", ios_install_title:"Installa l'app per ricevere le notifiche", ios_install_body:"Su iPhone, le notifiche funzionano solo con NeoRejuvenation installata nella tua schermata Home. Sono 3 passaggi:", ios_install_step1:"Tocca il pulsante Condividi nella barra inferiore di Safari", ios_install_step2:"Trova e tocca \"Aggiungi a Home\"", ios_install_step3:"Apri NeoRejuvenation dall'icona sulla tua schermata Home", ios_install_note:"Importante: apri sempre l'app dall'icona della schermata Home, non da Safari.", ios_install_cta:"Capito" },
+  ea: { mark_all:"تحديد الكل", unmark_all:"إلغاء التحديد", regen_confirm_title:"إعادة إنشاء روتينك؟", regen_confirm_body:"سلسلتك البالغة {streak} يومًا ستبقى سليمة. سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_body_nostreak:"سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_btn:"نعم، إعادة الإنشاء", regen_cancel_btn:"إلغاء", note_label:"ملاحظة اليوم", note_placeholder:"كيف شعرت اليوم (اختياري)…", grace_day:"تم استخدام يوم السماح", none_excludes:"عند اختيار \"لا شيء\"، يتم تعطيل الخيارات الأخرى", push_test_btn:"اختبر الإشعار", push_test_ok:"✓ تم إرسال الإشعار — يجب أن يصل خلال ثوانٍ", push_test_no_sub:"فعّل الإشعارات أولاً في هذا المتصفح", ios_install_title:"ثبّت التطبيق لتلقي الإشعارات", ios_install_body:"على iPhone، تعمل الإشعارات فقط عند تثبيت NeoRejuvenation على الشاشة الرئيسية. الأمر يتطلب 3 خطوات:", ios_install_step1:"اضغط على زر المشاركة في شريط Safari السفلي", ios_install_step2:"ابحث واضغط على \"إضافة إلى الشاشة الرئيسية\"", ios_install_step3:"افتح NeoRejuvenation من الأيقونة على شاشتك الرئيسية", ios_install_note:"مهم: افتح التطبيق دائمًا من أيقونة الشاشة الرئيسية، وليس من Safari.", ios_install_cta:"فهمت" }
 };
 
 /* ───────────────── GOALS & CONTRAINDICATIONS ───────────────── */
@@ -927,6 +927,89 @@ function RegenConfirmModal({ streak, t, onCancel, onConfirm }) {
   );
 }
 
+/* ───────────────── iOS INSTALL PWA MODAL ───────────────── */
+function IOSInstallPWAModal({ t, onClose }) {
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(15,22,40,0.5)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 200, padding: 20, animation: "fadeIn 0.3s", backdropFilter: "blur(4px)"
+    }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: C.surface, borderRadius: 20, maxWidth: 400, width: "100%",
+        padding: "28px 24px 22px", animation: "modalIn 0.4s cubic-bezier(.2,.9,.3,1.2)",
+        border: `1px solid ${C.border}`, position: "relative", maxHeight: "90vh", overflowY: "auto"
+      }}>
+        <button onClick={onClose} aria-label="Close" style={{
+          position: "absolute", top: 14, right: 14, background: "transparent",
+          border: "none", color: C.textMuted, cursor: "pointer", padding: 6, borderRadius: 8, zIndex: 1
+        }}>{Icon.close(18)}</button>
+
+        <div style={{
+          width: 56, height: 56, borderRadius: "50%",
+          background: "#e8f5ef", border: `1px solid ${C.border}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 18px", color: C.brand1
+        }}>
+          {Icon.bell(24)}
+        </div>
+
+        <h3 style={{
+          fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 19,
+          color: C.text, textAlign: "center", marginBottom: 10, lineHeight: 1.25
+        }}>{t.ios_install_title}</h3>
+
+        <p style={{
+          fontSize: 13, color: C.textDim, lineHeight: 1.6,
+          textAlign: "center", marginBottom: 22
+        }}>{t.ios_install_body}</p>
+
+        {/* 3 pasos visuales */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 22 }}>
+          {[
+            { n: 1, text: t.ios_install_step1, icon: "⬆️" },
+            { n: 2, text: t.ios_install_step2, icon: "➕" },
+            { n: 3, text: t.ios_install_step3, icon: "🏠" }
+          ].map(step => (
+            <div key={step.n} style={{
+              display: "flex", alignItems: "center", gap: 12,
+              padding: "12px 14px", background: C.bgSoft,
+              borderRadius: 12, border: `1px solid ${C.border}`
+            }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: "50%",
+                background: C.brandGrad, color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 13,
+                flexShrink: 0
+              }}>{step.n}</div>
+              <div style={{ flex: 1, fontSize: 12, color: C.textDim, lineHeight: 1.5 }}>
+                {step.text}
+              </div>
+              <div style={{ fontSize: 18, flexShrink: 0 }}>{step.icon}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{
+          padding: "10px 12px", background: C.warningBg,
+          border: `1px solid ${C.morning.border}`, borderRadius: 10,
+          fontSize: 11, color: C.warning, lineHeight: 1.5, marginBottom: 18
+        }}>
+          ⚠️ {t.ios_install_note}
+        </div>
+
+        <button onClick={onClose} style={{
+          width: "100%", padding: 13, borderRadius: 12,
+          background: C.brandGrad, border: "none", color: "#fff",
+          fontFamily: "Oswald,sans-serif", fontWeight: 600, fontSize: 13,
+          letterSpacing: "0.03em", cursor: "pointer"
+        }}>{t.ios_install_cta}</button>
+      </div>
+    </div>
+  );
+}
+
 /* ───────────────── ONBOARDING ───────────────── */
 function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
   const [step, setStep] = useState(draft?.step || 0);
@@ -1363,6 +1446,7 @@ export default function App() {
   const [shownMilestones, setShownMilestones] = useState([]);
   const [onboardingDraft, setOnboardingDraft] = useState(null);
   const [showRegenConfirm, setShowRegenConfirm] = useState(false);
+  const [showIOSInstall, setShowIOSInstall] = useState(false);
   const [showRoutineInfo, setShowRoutineInfo] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -1852,6 +1936,14 @@ const confirmRegen = () => {
         />
       )}
 
+      {/* iOS install PWA educational modal */}
+      {showIOSInstall && (
+        <IOSInstallPWAModal
+          t={t}
+          onClose={() => setShowIOSInstall(false)}
+        />
+      )}
+
       {/* Top tabs (only in dashboard, hidden while notification gate is showing) */}
       {appState === "dashboard" && !needsNotifGate && (
         <div style={{
@@ -2111,9 +2203,41 @@ const confirmRegen = () => {
               <SettingsView
                 rems={rems} onRem={remUpdate}
                 onNotif={async () => {
-                  // Caso 1: dentro del iframe de WordPress → delegar al parent vía bridge.
-                  // El parent llamará a OneSignal.Notifications.requestPermission() desde
-                  // el dominio top-level, único contexto donde iOS Safari permite pedir permiso.
+                  // ── Detección de iOS sin PWA instalada ──
+                  // En iOS Safari, web push solo funciona con PWA en home screen.
+                  // Si detectamos iOS + no-standalone, mostramos modal educativo
+                  // en lugar de intentar pedir permiso (que fallaría silenciosamente).
+                  const ua = navigator.userAgent || "";
+                  const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+                                (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+                  if (isIOS && bridge.isAvailable()) {
+                    // Preguntamos al parent si está en standalone (PWA instalada).
+                    // El parent responde con isStandalone en la misma respuesta de requestPushPermission.
+                    try {
+                      const res = await bridge.requestPushPermission();
+
+                      if (res.ok && res.permission === "granted") {
+                        setNotif(true);
+                        setNotifState("granted");
+                        setToast(t.notif_granted);
+                        setTimeout(() => setToast(null), 4000);
+                        return;
+                      }
+
+                      // Si el permiso no llegó a "granted" Y estamos en iOS, muy probable
+                      // que sea porque no está instalada la PWA. Mostrar modal educativo.
+                      setShowIOSInstall(true);
+                      return;
+                    } catch (e) {
+                      // Cualquier error en iOS → asumimos no-PWA y mostramos el modal
+                      setShowIOSInstall(true);
+                      return;
+                    }
+                  }
+
+                  // ── Caso general (Android, desktop, etc.) ──
+                  // Dentro del iframe de WordPress → delegar al parent vía bridge.
                   if (bridge.isAvailable()) {
                     try {
                       const res = await bridge.requestPushPermission();
@@ -2123,7 +2247,6 @@ const confirmRegen = () => {
                         setToast(t.notif_granted);
                         setTimeout(() => setToast(null), 4000);
                       } else {
-                        // Permiso denegado o usuario dismiss — el parent ya habrá mostrado prompt
                         setNotif(false);
                       }
                     } catch (e) {
@@ -2135,7 +2258,8 @@ const confirmRegen = () => {
                     }
                     return;
                   }
-                  // Caso 2: app standalone (sin iframe) → permission API local.
+
+                  // ── Caso standalone sin bridge (sin iframe) ──
                   if ("Notification" in window) {
                     const p = await Notification.requestPermission();
                     setNotif(p === "granted");

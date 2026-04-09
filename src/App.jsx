@@ -636,6 +636,18 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
               fontFeatureSettings: '"zero", "ss01"',
               letterSpacing: "-0.01em"
             }}>{supp.dose}</span>
+            {hasNotes && (
+              <button
+                onClick={e => { e.stopPropagation(); setExp(v => !v); }}
+                style={{
+                  background: "none", border: "none", color: C.textMuted,
+                  fontSize: 10, cursor: "pointer", padding: 0, textDecoration: "underline",
+                  fontFamily: "Inter, sans-serif"
+                }}
+              >
+                {exp ? t.hide_info : t.more_info}
+              </button>
+            )}
             {supp.frequency && supp.frequency !== "daily" && (
               <span style={{
                 fontSize: 9, padding: "2px 7px", borderRadius: 20,
@@ -652,20 +664,6 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
             }}>
               {supp.brand}
               {supp.benefits && supp.benefits.length > 0 && <> · {supp.benefits.join(" · ")}</>}
-            </div>
-          )}
-          {/* Botón "Más info" visible siempre si hay notas, incluso en modo compacto */}
-          {hasNotes && (
-            <div style={{ marginTop: compact && !exp ? 4 : 6 }}>
-              <button
-                onClick={e => { e.stopPropagation(); setExp(v => !v); }}
-                style={{
-                  background: "none", border: "none", color: C.textMuted,
-                  fontSize: 10, cursor: "pointer", padding: 0, textDecoration: "underline"
-                }}
-              >
-                {exp ? t.hide_info : t.more_info}
-              </button>
             </div>
           )}
           {hasNotes && exp && (

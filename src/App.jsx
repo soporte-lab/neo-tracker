@@ -459,9 +459,9 @@ function BrandOrb({ size = 84, variant = "brand" }) {
   const [imgFailed, setImgFailed] = useState(false);
 
   const isSuccess = variant === "success";
-  // Rings siempre en azul/cyan — contraste con el verde de la app
-  const ringA = "#1abfe8";  // cyan
-  const ringB = "#5b7fd4";  // azul
+  // brand → rings azules (cyan + azul) | success → rings verdes (teal + verde)
+  const ringA = isSuccess ? "#0f6e56" : "#1abfe8";
+  const ringB = isSuccess ? "#5DCAA5" : "#5b7fd4";
 
   // El wrapper es 1.5× el tamaño del logo → deja aire para los rings
   // sin tener que cambiar los `size` que se pasan desde fuera.
@@ -1133,7 +1133,7 @@ function Onboarding({ onComplete, GOALS, CONTRA, t, draft, onDraftChange }) {
     {
       ti: t.step3_title, su: t.step3_sub, ok: true,
       body: (
-        <div style={{ textAlign: "center", padding: "20px 0" }}>
+        <div style={{ textAlign: "center", padding: "40px 0 20px" }}>
           <div style={{ marginBottom: 36, display: "flex", justifyContent: "center" }}><BrandOrb size={72} /></div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 32 }}>
             {GOALS.filter(g => goals.includes(g.id)).map(g => (
@@ -1455,7 +1455,7 @@ export default function App() {
   const [warns, setWarns] = useState([]);
   const [toast, setToast] = useState(null);
   const [viewDate, setViewDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [compactManual, setCompactManual] = useState(false);
+  const [compactManual, setCompactManual] = useState(null);
   const [milestone, setMilestone] = useState(null);
   const [shownMilestones, setShownMilestones] = useState([]);
   const [onboardingDraft, setOnboardingDraft] = useState(null);
@@ -1747,7 +1747,7 @@ export default function App() {
 
   /* Auto compact mode */
   const totalCount = allSupps.length;
-  const compact = compactManual || totalCount > 8;
+  const compact = compactManual;
 
   /* Handlers */
   const toggle = useCallback((id) => {

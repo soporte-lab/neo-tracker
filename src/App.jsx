@@ -709,7 +709,7 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
             <SectionIcon period={period} size={20} />
           </div>
           <div>
-            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 18, color: C.text, letterSpacing: "0.01em", lineHeight: 1.15 }}>
+            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 18, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
               {t[period]}
             </div>
             <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{t[period + "_hint"]}</div>

@@ -105,7 +105,10 @@ const bridge = (() => {
     pullState:   ()    => send("nr-tracker-state-pull", null).then(r => r.data),
     pushState:   (p)   => send("nr-tracker-state-push", p).then(r => r.data),
     generate:    (p)   => send("nr-tracker-generate", p, 60000).then(r => ({ status: r.status, data: r.data, ok: r.ok })),
-    quota:       ()    => send("nr-tracker-quota", null).then(r => r.data)
+    quota:       ()    => send("nr-tracker-quota", null).then(r => r.data),
+    onesignalTag: (action) => send("nr-tracker-onesignal-tag", { action: action || "add" }).then(r => r.data),
+    pushTest:    ()    => send("nr-tracker-push-test", {}).then(r => ({ ok: r.ok, status: r.status, data: r.data })),
+    requestPushPermission: () => send("nr-tracker-request-push-permission", null, 30000).then(r => ({ ok: r.ok, permission: r.permission, subscribed: r.subscribed, error: r.error }))
   };
 })();
 
@@ -1369,7 +1372,20 @@ export default function App() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  useEffect(() => { injectFonts(); }, []);
+  useEffect(() => {
+    injectFonts();
+
+    // Registrar service worker para cachear assets del bundle.
+    // Solo en producción (no en dev local de Vite) y solo si el navegador lo soporta.
+    if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
+      navigator.serviceWorker
+        .register('/sw.js', { scope: '/' })
+        .catch((err) => {
+          // Silent fail — la app funciona perfecto sin SW, solo pierde el caching
+          if (window.console) console.warn('[nr-tracker] SW register failed:', err);
+        });
+    }
+  }, []);
 
 /* Check notification permission on load */
   useEffect(() => {
@@ -2095,6 +2111,31 @@ const confirmRegen = () => {
               <SettingsView
                 rems={rems} onRem={remUpdate}
                 onNotif={async () => {
+                  // Caso 1: dentro del iframe de WordPress → delegar al parent vía bridge.
+                  // El parent llamará a OneSignal.Notifications.requestPermission() desde
+                  // el dominio top-level, único contexto donde iOS Safari permite pedir permiso.
+                  if (bridge.isAvailable()) {
+                    try {
+                      const res = await bridge.requestPushPermission();
+                      if (res.ok && res.permission === "granted") {
+                        setNotif(true);
+                        setNotifState("granted");
+                        setToast(t.notif_granted);
+                        setTimeout(() => setToast(null), 4000);
+                      } else {
+                        // Permiso denegado o usuario dismiss — el parent ya habrá mostrado prompt
+                        setNotif(false);
+                      }
+                    } catch (e) {
+                      // Bridge falló → fallback al permission local si existe
+                      if ("Notification" in window) {
+                        const p = await Notification.requestPermission();
+                        setNotif(p === "granted");
+                      }
+                    }
+                    return;
+                  }
+                  // Caso 2: app standalone (sin iframe) → permission API local.
                   if ("Notification" in window) {
                     const p = await Notification.requestPermission();
                     setNotif(p === "granted");

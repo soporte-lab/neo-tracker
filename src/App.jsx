@@ -253,6 +253,28 @@ const navTop = (url) => {
 // existentes en history[fecha].note se conservan intactos.
 const SHOW_DAILY_NOTES = false;
 
+// Marcas de suplementos ocultas en la VISUALIZACIÓN de las rutinas.
+// Reversible: poner a true. NO se toca el catálogo, ni el prompt de la IA,
+// ni los datos guardados — el campo `brand` sigue existiendo en el JSON
+// (rutinas nuevas y antiguas), simplemente deja de pintarse en las tarjetas.
+const SHOW_BRANDS = false;
+
+// Lista negra de marcas para limpiar textos libres (notas, mensaje de la IA,
+// avisos) donde la marca puede venir incrustada dentro de una frase.
+// Solo se aplica en render — el dato original queda intacto.
+const BRAND_RE = /(SOLARAY(\s+Retard)?|Kinoko|Solgar|Revidox|Douglas|Soria Natural|Lamberts|Keriba|Ana Mar[ií]a Lajusticia|Redenhair)/gi;
+const sanitizeText = (txt) => {
+  if (SHOW_BRANDS || !txt) return txt;
+  return txt
+    .replace(BRAND_RE, "")
+    .replace(/(^|[\s(])\/+([\s)]|$)/g, "$1$2") // slash huérfano tras "Solgar/Revidox"
+    .replace(/\(\s*\)/g, "")                    // paréntesis vacíos
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,.;:·)])/g, "$1")
+    .replace(/(^|[.!?¡¿]\s*)[,;:·]\s*/g, "$1")
+    .trim();
+};
+
 /* ───────────────── TRANSLATIONS ───────────────── */
 const T = {
   es: { trackerSub:"Supplement Tracker", today_label:"hoy", tab_today:"Hoy", tab_progress:"Progreso", tab_settings:"Ajustes", morning:"Mañana", afternoon:"Tarde", night:"Noche", morning_hint:"Al despertar · Con desayuno", afternoon_hint:"Mediodía · Con comida", night_hint:"Antes de dormir · Con cena", morning_notif:"Mañana", afternoon_notif:"Tarde", night_notif:"Noche", freq_alternate:"Cada 2-3 días", freq_weekly:"2-3×/semana", hide_info:"Ocultar", more_info:"Más info", step1_title:"¿Cuáles son tus objetivos?", step1_sub:"Selecciona todos los que apliquen. Adaptaremos tu rutina.", step2_title:"Contraindicaciones", step2_sub:"Es importante para tu seguridad. Sé honesto/a.", step3_title:"¡Todo listo!", step3_sub:"Crearemos tu rutina personalizada basada en el método NeoRejuvenation.", step3_disclaimer:"Esta información es educativa. Consulta siempre con un profesional sanitario antes de iniciar cualquier suplementación.", btn_back:"Atrás", btn_continue:"Continuar", btn_create:"Crear mi rutina", gen_title:"Creando tu rutina personalizada", gen_sub:"Estamos analizando tus objetivos y diseñando la combinación óptima de suplementos NeoRejuvenation", ai_label:"Tu rutina personalizada", today_header:"Tu rutina de hoy", streak_label:"días en racha", complete_title:"¡Rutina completada!", complete_sub:"Has completado todos tus suplementos de hoy. Tu cuerpo te lo agradece.", progress_title:"Tu progreso", progress_sub:"Últimos 30 días", streak_card_label:"Racha activa", streak_days:"días consecutivos", record_label:"Récord", record_days:"días", last7:"Últimos 7 días", weekly_avg:"Prom.", routine_title:"Tu rutina actual", total_supps:"suplementos en total", settings_title:"Ajustes", reminders_title:"Recordatorios", notif_btn:"Activar notificaciones", notif_granted:"Notificaciones activadas", notif_hint:"Los recordatorios funcionan mientras tengas esta página abierta.", routine_section:"Rutina", regenerate_hint:"¿Quieres ajustar tus objetivos o regenerar tu rutina?", regenerate_btn:"Crear nueva rutina", reminder_prefix:"Recordatorio", fallback_msg:"Tu rutina base NeoRejuvenation está lista. Vitamina C + Reishi son los pilares fundamentales de tu regeneración celular diaria.", fallback_warning:"Consulta con un médico antes de iniciar cualquier suplementación.", compact_label:"Modo compacto", compact_hint:"Oculta los beneficios para ver más suplementos de un vistazo", viewing_past:"Viendo día pasado", back_to_today:"Volver a hoy", swipe_hint:"Desliza ← → para cambiar de día", milestone_cta:"Continuar", day_names:["D","L","M","X","J","V","S"], date_locale:"es-ES" },
@@ -613,6 +635,11 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
   const showExpanded = !compact || exp;
   const hasNotes = !!supp.notes;
 
+  // Marca visible solo si SHOW_BRANDS. Los datos guardados no se tocan,
+  // solo se omite en el render. Benefits pasan a ser el primer segmento.
+  const brandShown = SHOW_BRANDS && !!supp.brand;
+  const hasBenefits = supp.benefits && supp.benefits.length > 0;
+
   return (
     <div
       onClick={() => { if (readOnly) return; onToggle(supp.id); }}
@@ -669,11 +696,11 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
               fontSize: 10, color: checked ? C.textGhost : C.textMuted, marginTop: 4, lineHeight: 1.4,
               textDecoration: checked ? "line-through" : "none"
             }}>
-              {supp.brand}
-              {supp.benefits && supp.benefits.length > 0 && <> · {supp.benefits.join(" · ")}</>}
+              {brandShown && supp.brand}
+              {hasBenefits && <>{brandShown ? " · " : ""}{supp.benefits.join(" · ")}</>}
               {hasNotes && (
                 <>
-                  {" · "}
+                  {(brandShown || hasBenefits) ? " · " : ""}
                   <button
                     onClick={e => { e.stopPropagation(); setExp(v => !v); }}
                     style={{
@@ -705,7 +732,7 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
           )}
           {hasNotes && exp && (
             <div style={{ marginTop: 6, padding: "8px 10px", background: C.bgSoft, borderRadius: 8, fontSize: 11, color: C.textDim, lineHeight: 1.55 }}>
-              {supp.notes}
+              {sanitizeText(supp.notes)}
             </div>
           )}
         </div>
@@ -2148,7 +2175,7 @@ const confirmRegen = () => {
                         fontSize: 12, color: C.textDim, lineHeight: 1.55,
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"
                       }}>
-                        {aiMsg || (warns.length > 0 ? `⚠️ ${warns[0]}` : "")}
+                        {sanitizeText(aiMsg) || (warns.length > 0 ? `⚠️ ${sanitizeText(warns[0])}` : "")}
                       </span>
                       <span style={{
                         flexShrink: 0,
@@ -2181,7 +2208,7 @@ const confirmRegen = () => {
                             <div style={{ fontSize: 10, color: C.brand1, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>
                               {t.ai_label}
                             </div>
-                            <p style={{ fontSize: 12, color: C.textDim, lineHeight: 1.55, margin: 0 }}>{aiMsg}</p>
+                            <p style={{ fontSize: 12, color: C.textDim, lineHeight: 1.55, margin: 0 }}>{sanitizeText(aiMsg)}</p>
                           </div>
                         )}
                         {warns.map((w, i) => (
@@ -2189,7 +2216,7 @@ const confirmRegen = () => {
                             padding: "10px 13px", background: C.warningBg,
                             border: `1px solid ${C.morning.border}`, borderRadius: 10,
                             marginBottom: 6, fontSize: 11, color: C.warning
-                          }}>⚠️ {w}</div>
+                          }}>⚠️ {sanitizeText(w)}</div>
                         ))}
                       </div>
                     )}

@@ -111,13 +111,17 @@ const bridge = (() => {
     // Timeout corto y resuelve a null (desconocido) si el bridge no responde,
     // para que Ajustes degrade con elegancia (nunca error ni spinner infinito).
     isSubscribed: ()   => send("nr-tracker-is-subscribed", null, 5000).then(r => (typeof r.subscribed === "boolean" ? r.subscribed : null)),
-    // Scanner + Experto (proxy en el parent hacia /wp-json/nr-supp/v1):
-    suppRecent:  ()    => send("nr-tracker-supp-recent", null, 15000).then(r => r.data),
-    suppProduct: (id)  => send("nr-tracker-supp-product", { id }, 15000).then(r => r.data),
-    suppScan:    (p)   => send("nr-tracker-supp-scan", p, 120000).then(r => r.data),
-    suppExpert:  (p)   => send("nr-tracker-supp-expert", p, 90000).then(r => r.data),
+    // Scanner + Experto (proxy en el parent hacia /wp-json/nr-supp/v1).
+    // Prefijo "nrx-" a propósito: el listener del snippet 144 responde
+    // "Unknown request type" a cualquier nr-tracker-* que no conozca, así
+    // que estos mensajes usan otro namespace y los atienden los snippets
+    // "Scanner bridge" y "Metrics" (que responden con tipo nr-tracker-nrx-*).
+    suppRecent:  ()    => send("nrx-supp-recent", null, 15000).then(r => r.data),
+    suppProduct: (id)  => send("nrx-supp-product", { id }, 15000).then(r => r.data),
+    suppScan:    (p)   => send("nrx-supp-scan", p, 120000).then(r => r.data),
+    suppExpert:  (p)   => send("nrx-supp-expert", p, 90000).then(r => r.data),
     // Métrica fire-and-forget: nunca lanza ni bloquea nada.
-    metric:      (event, meta) => send("nr-tracker-metric", { event, meta: meta || "" }, 4000).catch(() => {})
+    metric:      (event, meta) => send("nrx-metric", { event, meta: meta || "" }, 4000).catch(() => {})
   };
 })();
 

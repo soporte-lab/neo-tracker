@@ -115,7 +115,9 @@ const bridge = (() => {
     suppRecent:  ()    => send("nr-tracker-supp-recent", null, 15000).then(r => r.data),
     suppProduct: (id)  => send("nr-tracker-supp-product", { id }, 15000).then(r => r.data),
     suppScan:    (p)   => send("nr-tracker-supp-scan", p, 120000).then(r => r.data),
-    suppExpert:  (p)   => send("nr-tracker-supp-expert", p, 90000).then(r => r.data)
+    suppExpert:  (p)   => send("nr-tracker-supp-expert", p, 90000).then(r => r.data),
+    // Métrica fire-and-forget: nunca lanza ni bloquea nada.
+    metric:      (event, meta) => send("nr-tracker-metric", { event, meta: meta || "" }, 4000).catch(() => {})
   };
 })();
 
@@ -246,13 +248,13 @@ const detectLang = () => {
 
 /* ───────────────── SCANNER I18N ───────────────── */
 const SCAN_T = {
-  es: { scan_title:"Escáner de suplementos", scan_sub:"Fotografía la etiqueta de cualquier suplemento y obtén un análisis objetivo con puntuación de seguridad, eficacia y transparencia.", scan_cta:"Escanear suplemento", recent:"Escaneados recientemente", empty_recent:"Aún no has escaneado ningún producto.", step1:"Frontal del bote", step1s:"Nombre del producto y marca", step2:"Tabla de ingredientes", step2s:"Supplement Facts / Información nutricional", step3:"Otros ingredientes", step3s:"Resto de la etiqueta y advertencias", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analizar", loading:["Leyendo la etiqueta…","Identificando ingredientes…","Calculando puntuaciones…","Casi listo…"], back:"Volver", overall:"Índice global", safety:"Seguridad", efficacy:"Eficacia", transparency:"Transparencia", good:"Lo bueno", bad:"Atención", ingredients:"Ingredientes", alternatives:"Cómo mejorarlo", expert:"Experto", expert_sub:"Pregunta cualquier duda sobre suplementos", expert_title:"¿Por dónde empezamos?", q1:"¿Qué magnesio ayuda a dormir mejor?", q2:"¿Puedo combinar probióticos y vitaminas?", q3:"¿Colágeno en polvo o en cápsulas?", type_msg:"Escribe tu pregunta…", err:"Algo ha fallado. Inténtalo de nuevo.", thinking:"Pensando…" },
-  en: { scan_title:"Supplement scanner", scan_sub:"Photograph any supplement label and get an objective analysis with safety, efficacy and transparency scores.", scan_cta:"Scan supplement", recent:"Recently scanned", empty_recent:"You haven’t scanned any product yet.", step1:"Front of the bottle", step1s:"Product name and brand", step2:"Ingredients panel", step2s:"Supplement Facts", step3:"Other ingredients", step3s:"Rest of the label and warnings", optional:"Optional", add_photo:"Photo", retake:"Retake", analyze:"Analyze", loading:["Reading the label…","Identifying ingredients…","Calculating scores…","Almost there…"], back:"Back", overall:"Overall score", safety:"Safety", efficacy:"Efficacy", transparency:"Transparency", good:"Good", bad:"Watch out", ingredients:"Ingredients", alternatives:"How to improve it", expert:"Expert", expert_sub:"Ask any question about supplements", expert_title:"Where should we start?", q1:"Which magnesium helps you sleep best?", q2:"Can I mix probiotics and vitamins?", q3:"Collagen powder or capsules?", type_msg:"Type your question…", err:"Something went wrong. Try again.", thinking:"Thinking…" },
-  fr: { scan_title:"Scanner de compléments", scan_sub:"Photographiez l’étiquette de n’importe quel complément et obtenez une analyse objective avec scores de sécurité, efficacité et transparence.", scan_cta:"Scanner un complément", recent:"Scannés récemment", empty_recent:"Vous n’avez encore scanné aucun produit.", step1:"Face avant du flacon", step1s:"Nom du produit et marque", step2:"Tableau des ingrédients", step2s:"Valeurs nutritionnelles", step3:"Autres ingrédients", step3s:"Reste de l’étiquette et avertissements", optional:"Optionnel", add_photo:"Photo", retake:"Reprendre", analyze:"Analyser", loading:["Lecture de l’étiquette…","Identification des ingrédients…","Calcul des scores…","Presque fini…"], back:"Retour", overall:"Score global", safety:"Sécurité", efficacy:"Efficacité", transparency:"Transparence", good:"Points forts", bad:"Attention", ingredients:"Ingrédients", alternatives:"Comment l’améliorer", expert:"Expert", expert_sub:"Posez toute question sur les compléments", expert_title:"Par où commençons-nous ?", q1:"Quel magnésium aide à mieux dormir ?", q2:"Puis-je combiner probiotiques et vitamines ?", q3:"Collagène en poudre ou en gélules ?", type_msg:"Écrivez votre question…", err:"Une erreur est survenue. Réessayez.", thinking:"Réflexion…" },
-  it: { scan_title:"Scanner di integratori", scan_sub:"Fotografa l’etichetta di qualsiasi integratore e ottieni un’analisi oggettiva con punteggi di sicurezza, efficacia e trasparenza.", scan_cta:"Scansiona integratore", recent:"Scansionati di recente", empty_recent:"Non hai ancora scansionato nessun prodotto.", step1:"Fronte del flacone", step1s:"Nome del prodotto e marca", step2:"Tabella degli ingredienti", step2s:"Informazioni nutrizionali", step3:"Altri ingredienti", step3s:"Resto dell’etichetta e avvertenze", optional:"Opzionale", add_photo:"Foto", retake:"Ripeti", analyze:"Analizza", loading:["Lettura dell’etichetta…","Identificazione degli ingredienti…","Calcolo dei punteggi…","Quasi pronto…"], back:"Indietro", overall:"Punteggio globale", safety:"Sicurezza", efficacy:"Efficacia", transparency:"Trasparenza", good:"Punti di forza", bad:"Attenzione", ingredients:"Ingredienti", alternatives:"Come migliorarlo", expert:"Esperto", expert_sub:"Fai qualsiasi domanda sugli integratori", expert_title:"Da dove iniziamo?", q1:"Quale magnesio aiuta a dormire meglio?", q2:"Posso combinare probiotici e vitamine?", q3:"Collagene in polvere o in capsule?", type_msg:"Scrivi la tua domanda…", err:"Qualcosa è andato storto. Riprova.", thinking:"Sto pensando…" },
-  de: { scan_title:"Supplement-Scanner", scan_sub:"Fotografieren Sie das Etikett eines Nahrungsergänzungsmittels und erhalten Sie eine objektive Analyse mit Bewertungen zu Sicherheit, Wirksamkeit und Transparenz.", scan_cta:"Supplement scannen", recent:"Zuletzt gescannt", empty_recent:"Sie haben noch kein Produkt gescannt.", step1:"Vorderseite der Flasche", step1s:"Produktname und Marke", step2:"Zutatentabelle", step2s:"Nährwertangaben", step3:"Weitere Zutaten", step3s:"Rest des Etiketts und Warnhinweise", optional:"Optional", add_photo:"Foto", retake:"Wiederholen", analyze:"Analysieren", loading:["Etikett wird gelesen…","Zutaten werden identifiziert…","Bewertungen werden berechnet…","Fast fertig…"], back:"Zurück", overall:"Gesamtbewertung", safety:"Sicherheit", efficacy:"Wirksamkeit", transparency:"Transparenz", good:"Stärken", bad:"Achtung", ingredients:"Zutaten", alternatives:"Verbesserungsmöglichkeiten", expert:"Experte", expert_sub:"Stellen Sie jede Frage zu Supplementen", expert_title:"Womit fangen wir an?", q1:"Welches Magnesium hilft beim Schlafen?", q2:"Kann ich Probiotika und Vitamine kombinieren?", q3:"Kollagen als Pulver oder Kapseln?", type_msg:"Schreiben Sie Ihre Frage…", err:"Etwas ist schiefgelaufen. Versuchen Sie es erneut.", thinking:"Denke nach…" },
-  pt: { scan_title:"Scanner de suplementos", scan_sub:"Fotografe o rótulo de qualquer suplemento e obtenha uma análise objetiva com pontuações de segurança, eficácia e transparência.", scan_cta:"Escanear suplemento", recent:"Escaneados recentemente", empty_recent:"Você ainda não escaneou nenhum produto.", step1:"Frente do frasco", step1s:"Nome do produto e marca", step2:"Tabela de ingredientes", step2s:"Informação nutricional", step3:"Outros ingredientes", step3s:"Resto do rótulo e advertências", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analisar", loading:["Lendo o rótulo…","Identificando ingredientes…","Calculando pontuações…","Quase pronto…"], back:"Voltar", overall:"Índice global", safety:"Segurança", efficacy:"Eficácia", transparency:"Transparência", good:"Pontos fortes", bad:"Atenção", ingredients:"Ingredientes", alternatives:"Como melhorar", expert:"Especialista", expert_sub:"Pergunte qualquer dúvida sobre suplementos", expert_title:"Por onde começamos?", q1:"Qual magnésio ajuda a dormir melhor?", q2:"Posso combinar probióticos e vitaminas?", q3:"Colágeno em pó ou em cápsulas?", type_msg:"Escreva sua pergunta…", err:"Algo deu errado. Tente novamente.", thinking:"Pensando…" },
-  ea: { scan_title:"ماسح المكملات", scan_sub:"صوّر ملصق أي مكمل غذائي واحصل على تحليل موضوعي مع تقييمات الأمان والفعالية والشفافية.", scan_cta:"مسح مكمل", recent:"تم مسحها مؤخرًا", empty_recent:"لم تقم بمسح أي منتج بعد.", step1:"واجهة العبوة", step1s:"اسم المنتج والعلامة التجارية", step2:"جدول المكونات", step2s:"حقائق المكمل الغذائي", step3:"مكونات أخرى", step3s:"بقية الملصق والتحذيرات", optional:"اختياري", add_photo:"صورة", retake:"إعادة", analyze:"تحليل", loading:["قراءة الملصق…","تحديد المكونات…","حساب التقييمات…","اقتربنا…"], back:"رجوع", overall:"التقييم العام", safety:"الأمان", efficacy:"الفعالية", transparency:"الشفافية", good:"الإيجابيات", bad:"انتبه", ingredients:"المكونات", alternatives:"كيفية تحسينه", expert:"الخبير", expert_sub:"اسأل أي سؤال عن المكملات", expert_title:"من أين نبدأ؟", q1:"أي نوع من المغنيسيوم يساعد على النوم؟", q2:"هل يمكن الجمع بين البروبيوتيك والفيتامينات؟", q3:"الكولاجين بودرة أم كبسولات؟", type_msg:"اكتب سؤالك…", err:"حدث خطأ ما. حاول مرة أخرى.", thinking:"يفكر…" }
+  es: { scan_title:"Escáner de suplementos", scan_sub:"Fotografía la etiqueta de cualquier suplemento y obtén un análisis objetivo con puntuación de seguridad, eficacia y transparencia.", scan_cta:"Escanear suplemento", recent:"Escaneados recientemente", empty_recent:"Aún no has escaneado ningún producto.", step1:"Frontal del bote", step1s:"Nombre del producto y marca", step2:"Tabla de ingredientes", step2s:"Supplement Facts / Información nutricional", step3:"Otros ingredientes", step3s:"Resto de la etiqueta y advertencias", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analizar", loading:["Leyendo la etiqueta…","Identificando ingredientes…","Calculando puntuaciones…","Casi listo…"], back:"Volver", overall:"Índice global", safety:"Seguridad", efficacy:"Eficacia", transparency:"Transparencia", good:"Lo bueno", bad:"Atención", ingredients:"Ingredientes", alternatives:"Cómo mejorarlo", expert:"Experto", expert_sub:"Pregunta cualquier duda sobre suplementos", expert_title:"¿Por dónde empezamos?", q1:"¿Qué magnesio ayuda a dormir mejor?", q2:"¿Puedo combinar probióticos y vitaminas?", q3:"¿Colágeno en polvo o en cápsulas?", type_msg:"Escribe tu pregunta…", err:"Algo ha fallado. Inténtalo de nuevo.", thinking:"Pensando…", add_routine:"Añadir a mi rutina", added:"✓ Añadido a tu rutina", already:"Ya está en tu rutina", ask_product:"Preguntar al experto sobre este producto", ask_product_msg:"Acabo de escanear \"{name}\"{brand}, puntuación {score}/100. ¿Qué opinas de este producto y cómo debería tomarlo?", pq_when:"¿Cuál es el mejor momento para tomar {a}?", pq_combo:"¿Puedo tomar {a} junto con {b}?", pq_food:"¿Con qué alimentos se absorbe mejor {a}?" },
+  en: { scan_title:"Supplement scanner", scan_sub:"Photograph any supplement label and get an objective analysis with safety, efficacy and transparency scores.", scan_cta:"Scan supplement", recent:"Recently scanned", empty_recent:"You haven’t scanned any product yet.", step1:"Front of the bottle", step1s:"Product name and brand", step2:"Ingredients panel", step2s:"Supplement Facts", step3:"Other ingredients", step3s:"Rest of the label and warnings", optional:"Optional", add_photo:"Photo", retake:"Retake", analyze:"Analyze", loading:["Reading the label…","Identifying ingredients…","Calculating scores…","Almost there…"], back:"Back", overall:"Overall score", safety:"Safety", efficacy:"Efficacy", transparency:"Transparency", good:"Good", bad:"Watch out", ingredients:"Ingredients", alternatives:"How to improve it", expert:"Expert", expert_sub:"Ask any question about supplements", expert_title:"Where should we start?", q1:"Which magnesium helps you sleep best?", q2:"Can I mix probiotics and vitamins?", q3:"Collagen powder or capsules?", type_msg:"Type your question…", err:"Something went wrong. Try again.", thinking:"Thinking…", add_routine:"Add to my routine", added:"✓ Added to your routine", already:"Already in your routine", ask_product:"Ask the expert about this product", ask_product_msg:"I just scanned \"{name}\"{brand}, scored {score}/100. What do you think of this product and how should I take it?", pq_when:"What's the best time of day to take {a}?", pq_combo:"Can I take {a} together with {b}?", pq_food:"Which foods help absorb {a} best?" },
+  fr: { scan_title:"Scanner de compléments", scan_sub:"Photographiez l’étiquette de n’importe quel complément et obtenez une analyse objective avec scores de sécurité, efficacité et transparence.", scan_cta:"Scanner un complément", recent:"Scannés récemment", empty_recent:"Vous n’avez encore scanné aucun produit.", step1:"Face avant du flacon", step1s:"Nom du produit et marque", step2:"Tableau des ingrédients", step2s:"Valeurs nutritionnelles", step3:"Autres ingrédients", step3s:"Reste de l’étiquette et avertissements", optional:"Optionnel", add_photo:"Photo", retake:"Reprendre", analyze:"Analyser", loading:["Lecture de l’étiquette…","Identification des ingrédients…","Calcul des scores…","Presque fini…"], back:"Retour", overall:"Score global", safety:"Sécurité", efficacy:"Efficacité", transparency:"Transparence", good:"Points forts", bad:"Attention", ingredients:"Ingrédients", alternatives:"Comment l’améliorer", expert:"Expert", expert_sub:"Posez toute question sur les compléments", expert_title:"Par où commençons-nous ?", q1:"Quel magnésium aide à mieux dormir ?", q2:"Puis-je combiner probiotiques et vitamines ?", q3:"Collagène en poudre ou en gélules ?", type_msg:"Écrivez votre question…", err:"Une erreur est survenue. Réessayez.", thinking:"Réflexion…", add_routine:"Ajouter à ma routine", added:"✓ Ajouté à votre routine", already:"Déjà dans votre routine", ask_product:"Demander à l'expert à propos de ce produit", ask_product_msg:"Je viens de scanner « {name} »{brand}, note {score}/100. Que pensez-vous de ce produit et comment devrais-je le prendre ?", pq_when:"Quel est le meilleur moment pour prendre {a} ?", pq_combo:"Puis-je prendre {a} avec {b} ?", pq_food:"Avec quels aliments {a} s'absorbe-t-il le mieux ?" },
+  it: { scan_title:"Scanner di integratori", scan_sub:"Fotografa l’etichetta di qualsiasi integratore e ottieni un’analisi oggettiva con punteggi di sicurezza, efficacia e trasparenza.", scan_cta:"Scansiona integratore", recent:"Scansionati di recente", empty_recent:"Non hai ancora scansionato nessun prodotto.", step1:"Fronte del flacone", step1s:"Nome del prodotto e marca", step2:"Tabella degli ingredienti", step2s:"Informazioni nutrizionali", step3:"Altri ingredienti", step3s:"Resto dell’etichetta e avvertenze", optional:"Opzionale", add_photo:"Foto", retake:"Ripeti", analyze:"Analizza", loading:["Lettura dell’etichetta…","Identificazione degli ingredienti…","Calcolo dei punteggi…","Quasi pronto…"], back:"Indietro", overall:"Punteggio globale", safety:"Sicurezza", efficacy:"Efficacia", transparency:"Trasparenza", good:"Punti di forza", bad:"Attenzione", ingredients:"Ingredienti", alternatives:"Come migliorarlo", expert:"Esperto", expert_sub:"Fai qualsiasi domanda sugli integratori", expert_title:"Da dove iniziamo?", q1:"Quale magnesio aiuta a dormire meglio?", q2:"Posso combinare probiotici e vitamine?", q3:"Collagene in polvere o in capsule?", type_msg:"Scrivi la tua domanda…", err:"Qualcosa è andato storto. Riprova.", thinking:"Sto pensando…", add_routine:"Aggiungi alla mia routine", added:"✓ Aggiunto alla tua routine", already:"Già nella tua routine", ask_product:"Chiedi all'esperto di questo prodotto", ask_product_msg:"Ho appena scansionato \"{name}\"{brand}, punteggio {score}/100. Cosa ne pensi di questo prodotto e come dovrei assumerlo?", pq_when:"Qual è il momento migliore per assumere {a}?", pq_combo:"Posso assumere {a} insieme a {b}?", pq_food:"Con quali alimenti si assorbe meglio {a}?" },
+  de: { scan_title:"Supplement-Scanner", scan_sub:"Fotografieren Sie das Etikett eines Nahrungsergänzungsmittels und erhalten Sie eine objektive Analyse mit Bewertungen zu Sicherheit, Wirksamkeit und Transparenz.", scan_cta:"Supplement scannen", recent:"Zuletzt gescannt", empty_recent:"Sie haben noch kein Produkt gescannt.", step1:"Vorderseite der Flasche", step1s:"Produktname und Marke", step2:"Zutatentabelle", step2s:"Nährwertangaben", step3:"Weitere Zutaten", step3s:"Rest des Etiketts und Warnhinweise", optional:"Optional", add_photo:"Foto", retake:"Wiederholen", analyze:"Analysieren", loading:["Etikett wird gelesen…","Zutaten werden identifiziert…","Bewertungen werden berechnet…","Fast fertig…"], back:"Zurück", overall:"Gesamtbewertung", safety:"Sicherheit", efficacy:"Wirksamkeit", transparency:"Transparenz", good:"Stärken", bad:"Achtung", ingredients:"Zutaten", alternatives:"Verbesserungsmöglichkeiten", expert:"Experte", expert_sub:"Stellen Sie jede Frage zu Supplementen", expert_title:"Womit fangen wir an?", q1:"Welches Magnesium hilft beim Schlafen?", q2:"Kann ich Probiotika und Vitamine kombinieren?", q3:"Kollagen als Pulver oder Kapseln?", type_msg:"Schreiben Sie Ihre Frage…", err:"Etwas ist schiefgelaufen. Versuchen Sie es erneut.", thinking:"Denke nach…", add_routine:"Zu meiner Routine hinzufügen", added:"✓ Zu Ihrer Routine hinzugefügt", already:"Bereits in Ihrer Routine", ask_product:"Den Experten zu diesem Produkt fragen", ask_product_msg:"Ich habe gerade \"{name}\"{brand} gescannt, Bewertung {score}/100. Was halten Sie von diesem Produkt und wie sollte ich es einnehmen?", pq_when:"Wann ist die beste Tageszeit für {a}?", pq_combo:"Kann ich {a} zusammen mit {b} einnehmen?", pq_food:"Mit welchen Lebensmitteln wird {a} am besten aufgenommen?" },
+  pt: { scan_title:"Scanner de suplementos", scan_sub:"Fotografe o rótulo de qualquer suplemento e obtenha uma análise objetiva com pontuações de segurança, eficácia e transparência.", scan_cta:"Escanear suplemento", recent:"Escaneados recentemente", empty_recent:"Você ainda não escaneou nenhum produto.", step1:"Frente do frasco", step1s:"Nome do produto e marca", step2:"Tabela de ingredientes", step2s:"Informação nutricional", step3:"Outros ingredientes", step3s:"Resto do rótulo e advertências", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analisar", loading:["Lendo o rótulo…","Identificando ingredientes…","Calculando pontuações…","Quase pronto…"], back:"Voltar", overall:"Índice global", safety:"Segurança", efficacy:"Eficácia", transparency:"Transparência", good:"Pontos fortes", bad:"Atenção", ingredients:"Ingredientes", alternatives:"Como melhorar", expert:"Especialista", expert_sub:"Pergunte qualquer dúvida sobre suplementos", expert_title:"Por onde começamos?", q1:"Qual magnésio ajuda a dormir melhor?", q2:"Posso combinar probióticos e vitaminas?", q3:"Colágeno em pó ou em cápsulas?", type_msg:"Escreva sua pergunta…", err:"Algo deu errado. Tente novamente.", thinking:"Pensando…", add_routine:"Adicionar à minha rotina", added:"✓ Adicionado à sua rotina", already:"Já está na sua rotina", ask_product:"Perguntar ao especialista sobre este produto", ask_product_msg:"Acabei de escanear \"{name}\"{brand}, pontuação {score}/100. O que você acha deste produto e como devo tomá-lo?", pq_when:"Qual é o melhor momento para tomar {a}?", pq_combo:"Posso tomar {a} junto com {b}?", pq_food:"Com quais alimentos {a} é melhor absorvido?" },
+  ea: { scan_title:"ماسح المكملات", scan_sub:"صوّر ملصق أي مكمل غذائي واحصل على تحليل موضوعي مع تقييمات الأمان والفعالية والشفافية.", scan_cta:"مسح مكمل", recent:"تم مسحها مؤخرًا", empty_recent:"لم تقم بمسح أي منتج بعد.", step1:"واجهة العبوة", step1s:"اسم المنتج والعلامة التجارية", step2:"جدول المكونات", step2s:"حقائق المكمل الغذائي", step3:"مكونات أخرى", step3s:"بقية الملصق والتحذيرات", optional:"اختياري", add_photo:"صورة", retake:"إعادة", analyze:"تحليل", loading:["قراءة الملصق…","تحديد المكونات…","حساب التقييمات…","اقتربنا…"], back:"رجوع", overall:"التقييم العام", safety:"الأمان", efficacy:"الفعالية", transparency:"الشفافية", good:"الإيجابيات", bad:"انتبه", ingredients:"المكونات", alternatives:"كيفية تحسينه", expert:"الخبير", expert_sub:"اسأل أي سؤال عن المكملات", expert_title:"من أين نبدأ؟", q1:"أي نوع من المغنيسيوم يساعد على النوم؟", q2:"هل يمكن الجمع بين البروبيوتيك والفيتامينات؟", q3:"الكولاجين بودرة أم كبسولات؟", type_msg:"اكتب سؤالك…", err:"حدث خطأ ما. حاول مرة أخرى.", thinking:"يفكر…", add_routine:"أضِف إلى روتيني", added:"✓ تمت الإضافة إلى روتينك", already:"موجود بالفعل في روتينك", ask_product:"اسأل الخبير عن هذا المنتج", ask_product_msg:"لقد مسحت للتو \"{name}\"{brand} بتقييم {score}/100. ما رأيك في هذا المنتج وكيف يجب أن أتناوله؟", pq_when:"ما أفضل وقت في اليوم لتناول {a}؟", pq_combo:"هل يمكنني تناول {a} مع {b}؟", pq_food:"مع أي أطعمة يُمتص {a} بشكل أفضل؟" }
 };
 
 /* ───────────────── FEATURE FLAGS ───────────────── */
@@ -1390,7 +1392,9 @@ function ScoreRing({ score, label }) {
   );
 }
 
-function ScannerView({ lang, active }) {
+const fillTpl = (s, vars) => String(s || "").replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null ? vars[k] : ""));
+
+function ScannerView({ lang, active, t, routine, onAddToRoutine }) {
   const st = SCAN_T[lang] || SCAN_T.es;
   const [sub, setSub] = useState("home"); // home | scan | loading | product | expert
   const [photos, setPhotos] = useState([null, null, null]);
@@ -1401,6 +1405,7 @@ function ScannerView({ lang, active }) {
   const [chatInput, setChatInput] = useState("");
   const [error, setError] = useState(null);
   const [loadMsg, setLoadMsg] = useState(0);
+  const [addFeedback, setAddFeedback] = useState(null); // "added" | "already"
   const loadedRef = useRef(false);
   const fileRefs = [useRef(null), useRef(null), useRef(null)];
   const chatEndRef = useRef(null);
@@ -1434,16 +1439,17 @@ function ScannerView({ lang, active }) {
   };
 
   const doScan = () => {
-    setSub("loading"); setError(null);
+    setSub("loading"); setError(null); setAddFeedback(null);
     bridge.suppScan({ photos: photos.filter(Boolean), lang }).then(p => {
       setProduct(p); setSub("product"); loadRecent();
+      bridge.metric("scan", p.product_name || "");
     }).catch(e => {
       setError(e.message || st.err); setSub("scan");
     });
   };
 
   const openProduct = (id) => {
-    setSub("loading"); setError(null);
+    setSub("loading"); setError(null); setAddFeedback(null);
     bridge.suppProduct(id).then(p => { setProduct(p); setSub("product"); })
       .catch(e => { setError(e.message || st.err); setSub("home"); });
   };
@@ -1451,6 +1457,7 @@ function ScannerView({ lang, active }) {
   const sendExpert = (text) => {
     const next = [...chat, { role: "user", content: text }];
     setChat(next); setChatBusy(true); setError(null); setChatInput("");
+    bridge.metric("expert");
     bridge.suppExpert({ messages: next, lang }).then(r => {
       setChat(c => [...c, { role: "assistant", content: r.reply || "" }]);
       setChatBusy(false);
@@ -1470,7 +1477,6 @@ function ScannerView({ lang, active }) {
   /* ── HOME ── */
   if (sub === "home") return (
     <div>
-      <div style={{ fontSize: 10, color: C.textMuted, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500, marginBottom: 4 }}>NeoRejuvenation</div>
       <h1 style={h1}>{st.scan_title}</h1>
       <p style={{ fontSize: 13, color: C.textDim, lineHeight: 1.55, margin: "8px 0 18px" }}>{st.scan_sub}</p>
       {errBox}
@@ -1616,12 +1622,64 @@ function ScannerView({ lang, active }) {
           </>
         )}
         {p.alternatives_hint && p.alternatives_hint.length > 0 && <><h2 style={sectionTitle}>{st.alternatives}</h2>{list(p.alternatives_hint, true)}</>}
+
+        {/* Añadir a mi rutina */}
+        <h2 style={sectionTitle}>{st.add_routine}</h2>
+        {addFeedback ? (
+          <div style={{ ...card, textAlign: "center", fontFamily: "Oswald,sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.04em", color: addFeedback === "added" ? C.brand1 : C.textDim, background: addFeedback === "added" ? "#e8f5ef" : C.bgSoft }}>
+            {addFeedback === "added" ? st.added : st.already}
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 8 }}>
+            {["morning", "afternoon", "night"].map(per => (
+              <button
+                key={per}
+                onClick={() => { haptic(8); setAddFeedback(onAddToRoutine(p, per)); }}
+                style={{ flex: 1, padding: "11px 4px", border: `1px solid ${C[per].border}`, borderRadius: 12, cursor: "pointer", background: C[per].bg, color: C[per].text, fontFamily: "Oswald,sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+              >
+                <SectionIcon period={per} size={13} /> {t[per]}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Preguntar al experto sobre este producto */}
+        <button
+          onClick={() => {
+            haptic(8);
+            setSub("expert");
+            sendExpert(fillTpl(st.ask_product_msg, {
+              name: p.product_name || "",
+              brand: p.brand ? " (" + p.brand + ")" : "",
+              score: s.overall || 0
+            }));
+          }}
+          style={{ ...card, width: "100%", marginTop: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, textAlign: "inherit", fontFamily: "inherit" }}
+        >
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "#e8f5ef", color: C.brand1, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{Icon.chat(15)}</div>
+          <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: C.text }}>{st.ask_product}</span>
+          <span style={{ color: C.textGhost }}>{Icon.chevRight(15)}</span>
+        </button>
+
         {p.disclaimer && <p style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 16, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>{p.disclaimer}</p>}
       </div>
     );
   }
 
   /* ── EXPERT ── */
+  // Preguntas iniciales personalizadas desde la rutina real; genéricas si no hay.
+  const suppNames = [...new Set(
+    ["morning", "afternoon", "night"]
+      .flatMap(per => (routine && routine[per]) || [])
+      .map(x => (x.name || "").trim())
+      .filter(Boolean)
+  )];
+  const starterQs = suppNames.length >= 2
+    ? [fillTpl(st.pq_when, { a: suppNames[0] }), fillTpl(st.pq_combo, { a: suppNames[0], b: suppNames[1] }), fillTpl(st.pq_food, { a: suppNames[1] })]
+    : suppNames.length === 1
+      ? [fillTpl(st.pq_when, { a: suppNames[0] }), fillTpl(st.pq_food, { a: suppNames[0] }), st.q2]
+      : [st.q1, st.q2, st.q3];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "55vh" }}>
       <button style={backBtn} onClick={() => { setSub("home"); loadRecent(); }}>{Icon.chevLeft(13)} {st.back}</button>
@@ -1631,7 +1689,7 @@ function ScannerView({ lang, active }) {
             <div style={{ width: 46, height: 46, borderRadius: 14, background: "#e8f5ef", color: C.brand1, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>{Icon.chat(20)}</div>
             <h1 style={{ ...h1, fontSize: 20 }}>{st.expert_title}</h1>
           </div>
-          {[st.q1, st.q2, st.q3].map((q, i) => (
+          {starterQs.map((q, i) => (
             <button key={i} onClick={() => sendExpert(q)} style={{ ...card, width: "100%", padding: "13px 16px", fontSize: 13.5, color: C.text, cursor: "pointer", marginBottom: 8, textAlign: "inherit", fontFamily: "inherit", transition: "border-color 0.12s" }}>
               {q}
             </button>
@@ -1788,6 +1846,7 @@ export default function App() {
         //     Fire-and-forget: no bloquea la hidratación y degrada a null si el
         //     parent no responde (nunca error ni spinner).
         bridge.isSubscribed().then(setSubscribed).catch(() => {});
+        bridge.metric("open");
 
         // 3. Pull del servidor. Si el servidor tiene algo más nuevo, lo aplicamos
         //    al estado React y al localStorage; si local es más nuevo, queda en
@@ -1945,6 +2004,7 @@ export default function App() {
       completedRef.current = true;
       fireConfetti();
       haptic([30, 60, 30]);
+      bridge.metric("day_complete");
     }
     if (pct < 100) completedRef.current = false;
   }, [pct, isToday, appState]);
@@ -1968,6 +2028,28 @@ export default function App() {
   const compact = compactManual;
 
   /* Handlers */
+  const addSuppToRoutine = useCallback((product, period) => {
+    if (!routine || !["morning", "afternoon", "night"].includes(period)) return "err";
+    const name = (product.product_name || "").trim();
+    if (!name) return "err";
+    const exists = (routine[period] || []).some(s => (s.name || "").trim().toLowerCase() === name.toLowerCase());
+    if (exists) return "already";
+    const supp = {
+      id: "scan-" + (product.id || "x") + "-" + Date.now().toString(36),
+      name,
+      dose: "",
+      brand: product.brand || "",
+      benefits: [],
+      notes: "",
+      frequency: "daily"
+    };
+    const next = { ...routine, [period]: [...(routine[period] || []), supp] };
+    setRoutine(next);
+    storage.set("neo-routine", JSON.stringify({ routine: next, personalMessage: aiMsg, warnings: warns }));
+    bridge.metric("add_routine", name);
+    return "added";
+  }, [routine, aiMsg, warns]);
+
   const toggle = useCallback((id) => {
     if (!isToday) return;
     haptic(12);
@@ -2435,7 +2517,7 @@ const confirmRegen = () => {
 
             {/* Escáner + Experto: siempre montado para conservar chat/fotos al cambiar de tab */}
             <div style={{ display: view === "scanner" ? "block" : "none" }}>
-              <ScannerView lang={lang} active={view === "scanner"} />
+              <ScannerView lang={lang} active={view === "scanner"} t={t} routine={routine} onAddToRoutine={addSuppToRoutine} />
             </div>
 
             {view === "settings" && (

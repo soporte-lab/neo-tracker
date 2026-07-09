@@ -239,11 +239,11 @@ const detectLang = () => {
   return "es";
 };
 
-/* ───────────────── UNIFIED NAV (scanner + expert) ───────────────── */
-// Navegación entre las herramientas hermanas del ecosistema supplement.
+/* ───────────────── UNIFIED NAV (scanner) ───────────────── */
+// Navegación a la herramienta hermana del ecosistema supplement.
+// Experto vive DENTRO de la página del escáner (ya no es item de nav propio).
 // La app vive en un iframe → window.top para navegar la página completa.
 const SCANNER_URL = "https://neorejuvenation.app/scanner/";
-const EXPERT_URL = "https://neorejuvenation.app/scanner/#experto";
 const navTop = (url) => {
   try { window.top.location.href = url; }
   catch { window.location.href = url; }
@@ -401,7 +401,7 @@ const C = {
   surfaceDone: "#fafbfd",
   border: "#eef0f6",
   borderStrong: "#e4e7ef",
-  text: "#1a2240",
+  text: "rgba(26,34,64,0.85)",
   textDim: "#4a5578",
   textMuted: "#8590aa",
   textGhost: "#b5bdd0",
@@ -470,6 +470,8 @@ const Icon = {
   scan: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>,
   chat: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
   pill: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.5 20.5 3.5 13.5a4.95 4.95 0 1 1 7-7l7 7a4.95 4.95 0 1 1-7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>,
+  chart: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  gear: (s = 16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
 };
 
 const SectionIcon = ({ period, size = 16 }) => {
@@ -662,7 +664,7 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
             <span style={{
               fontFamily: "Oswald,sans-serif",
               fontWeight: 600,
-              fontSize: 13,
+              fontSize: 18,
               color: checked ? C.textMuted : C.text,
               textDecoration: checked ? "line-through" : "none"
             }}>{supp.name}</span>
@@ -762,7 +764,7 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
             <SectionIcon period={period} size={20} />
           </div>
           <div>
-            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 18, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
+            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 22, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
               {t[period]}
             </div>
             <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{t[period + "_hint"]}</div>
@@ -1742,27 +1744,20 @@ const confirmRegen = () => {
   const viewDateObj = new Date(viewDate + "T12:00:00");
   const eyebrowDate = viewDateObj.toLocaleDateString(t.date_locale, { weekday: "long", day: "numeric", month: "long" });
 
+  /* Nav superior condensada: Suplementos | Escáner | Progreso | Ajustes.
+     "scanner" es externo (navega window.top a la página del escáner, donde
+     también vive Experto). El resto son vistas internas del tracker. */
   const tabs = [
-    { id: "today", l: t.tab_today },
-    { id: "progress", l: t.tab_progress },
-    { id: "settings", l: t.tab_settings }
+    { id: "today", l: t.nav_tracker, icon: Icon.pill },
+    { id: "progress", l: t.tab_progress, icon: Icon.chart },
+    { id: "scanner", l: t.nav_scanner, icon: Icon.scan, external: SCANNER_URL },
+    { id: "settings", l: t.tab_settings, icon: Icon.gear }
   ];
 
   const isRTL = lang === "ea";
   const bodyFont = isRTL
     ? "Almarai, -apple-system, BlinkMacSystemFont, sans-serif"
     : "Inter, -apple-system, BlinkMacSystemFont, sans-serif";
-
-  /* Unified bottom nav (tracker ↔ scanner ↔ expert) — solo en dashboard.
-     El permiso de notificaciones ya no bloquea el dashboard: lo garantiza el
-     GATE de /supplement/ (WordPress), aguas arriba del iframe. */
-  const showUnifiedNav = appState === "dashboard";
-
-  const unifiedNavItems = [
-    { id: "tracker", label: t.nav_tracker, icon: Icon.pill(15), active: true, onClick: () => {} },
-    { id: "scanner", label: t.nav_scanner, icon: Icon.scan(15), active: false, onClick: () => navTop(SCANNER_URL) },
-    { id: "expert", label: t.nav_expert, icon: Icon.chat(15), active: false, onClick: () => navTop(EXPERT_URL) }
-  ];
 
   return (
     <div dir={isRTL ? "rtl" : "ltr"} style={{
@@ -1802,29 +1797,45 @@ const confirmRegen = () => {
           background: `${C.bg}ee`, backdropFilter: "blur(20px)"
         }}>
           <div style={{
-            display: "flex", gap: 4, padding: 5, background: C.bgSoft,
-            borderRadius: 14, border: `1px solid ${C.border}`
+            display: "flex", gap: 4, padding: 5,
+            background: C.surface, border: `1px solid ${C.border}`,
+            borderRadius: 999, boxShadow: "0 6px 24px rgba(26,34,64,0.08)"
           }}>
-            {tabs.map(tab => (
-              <button key={tab.id} onClick={() => setView(tab.id)} style={{
-                flex: 1, padding: "10px 4px", border: "none",
-                background: view === tab.id ? C.surface : "transparent",
-                cursor: "pointer",
-                color: view === tab.id ? C.text : C.textMuted,
-                fontSize: 12,
-                fontWeight: view === tab.id ? 600 : 500,
-                borderRadius: 10,
-                transition: "all 0.2s",
-                boxShadow: view === tab.id ? "0 1px 3px rgba(26,34,64,0.08)" : "none",
-                fontFamily: "Oswald,sans-serif",
-                letterSpacing: "0.02em"
-              }}>{tab.l}</button>
-            ))}
+            {tabs.map(tab => {
+              const active = !tab.external && view === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (tab.external) { haptic(8); navTop(tab.external); }
+                    else setView(tab.id);
+                  }}
+                  style={{
+                    flex: 1, padding: "7px 2px 6px", border: "none",
+                    background: active ? "#e8f5ef" : "transparent",
+                    cursor: active ? "default" : "pointer",
+                    color: active ? C.brand1 : C.textMuted,
+                    fontSize: 9.5,
+                    fontWeight: 600,
+                    borderRadius: 999,
+                    transition: "all 0.2s",
+                    fontFamily: "Oswald,sans-serif",
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                    display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center", gap: 3,
+                    whiteSpace: "nowrap", overflow: "hidden"
+                  }}
+                >
+                  {tab.icon(15)} {tab.l}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
 
-      <div style={{ padding: "20px", paddingBottom: showUnifiedNav ? 104 : 40 }}>
+      <div style={{ padding: "20px", paddingBottom: 40 }}>
         {appState === "loading" && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
             <div style={{ width: 36, height: 36, border: `3px solid ${C.border}`, borderTop: `3px solid ${C.brand1}`, borderRadius: "50%", animation: "spin 1s linear infinite" }} />
@@ -1868,7 +1879,7 @@ const confirmRegen = () => {
                   </div>
                 )}
 
-                {/* HERO: date + ring */}
+                {/* HERO: date + swipe hint + ring */}
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, marginBottom: 14 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 10, color: C.textMuted, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500, marginBottom: 4 }}>
@@ -1878,12 +1889,20 @@ const confirmRegen = () => {
                       {t.today_header}
                     </h1>
                   </div>
+                  <div style={{
+                    alignSelf: "center", flexShrink: 0,
+                    display: "flex", alignItems: "center", gap: 4,
+                    fontSize: 10, color: C.textGhost,
+                    maxWidth: 120, textAlign: "center", lineHeight: 1.3
+                  }}>
+                    {Icon.chevLeft(12)} {t.swipe_hint} {Icon.chevRight(12)}
+                  </div>
                   <Ring pct={pct} size={72} stroke={6} />
                 </div>
 
-                {/* Streak pill + swipe hint */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22, flexWrap: "wrap", gap: 8 }}>
-                  {streak > 0 ? (
+                {/* Streak pill */}
+                {streak > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: 22 }}>
                     <span style={{
                       display: "inline-flex", alignItems: "center", gap: 6,
                       padding: "5px 11px 5px 9px", borderRadius: 20,
@@ -1893,11 +1912,8 @@ const confirmRegen = () => {
                     }}>
                       {Icon.flame(13)} {streak} {t.streak_label}
                     </span>
-                  ) : <span />}
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: C.textGhost }}>
-                    {Icon.chevLeft(12)} {t.swipe_hint} {Icon.chevRight(12)}
                   </div>
-                </div>
+                )}
 
              {/* Collapsible info (opción B): preview truncado siempre visible + expandir */}
                 {isToday && (aiMsg || warns.length > 0) && (
@@ -2072,40 +2088,6 @@ const confirmRegen = () => {
           </>
         )}
       </div>
-
-      {/* Unified bottom nav: Suplementos | Escáner | Experto */}
-      {showUnifiedNav && (
-        <nav style={{
-          position: "fixed", bottom: 14, left: "50%", transform: "translateX(-50%)",
-          width: "calc(100% - 40px)", maxWidth: 480, zIndex: 90,
-          display: "flex", gap: 4, padding: 5,
-          background: C.surface, border: `1px solid ${C.border}`,
-          borderRadius: 999, boxShadow: "0 6px 24px rgba(26,34,64,0.10)"
-        }}>
-          {unifiedNavItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => { if (!item.active) { haptic(8); item.onClick(); } }}
-              style={{
-                flex: 1, padding: "10px 4px", border: "none",
-                background: item.active ? "#e8f5ef" : "transparent",
-                cursor: item.active ? "default" : "pointer",
-                color: item.active ? C.brand1 : C.textMuted,
-                fontSize: 11,
-                fontWeight: 600,
-                borderRadius: 999,
-                transition: "all 0.2s",
-                fontFamily: "Oswald,sans-serif",
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6
-              }}
-            >
-              {item.icon} {item.label}
-            </button>
-          ))}
-        </nav>
-      )}
     </div>
   );
 }

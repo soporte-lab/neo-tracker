@@ -110,7 +110,12 @@ const bridge = (() => {
     // Estado de suscripción neo-push: el parent llama NRPush.isSubscribed().
     // Timeout corto y resuelve a null (desconocido) si el bridge no responde,
     // para que Ajustes degrade con elegancia (nunca error ni spinner infinito).
-    isSubscribed: ()   => send("nr-tracker-is-subscribed", null, 5000).then(r => (typeof r.subscribed === "boolean" ? r.subscribed : null))
+    isSubscribed: ()   => send("nr-tracker-is-subscribed", null, 5000).then(r => (typeof r.subscribed === "boolean" ? r.subscribed : null)),
+    // Scanner + Experto (proxy en el parent hacia /wp-json/nr-supp/v1):
+    suppRecent:  ()    => send("nr-tracker-supp-recent", null, 15000).then(r => r.data),
+    suppProduct: (id)  => send("nr-tracker-supp-product", { id }, 15000).then(r => r.data),
+    suppScan:    (p)   => send("nr-tracker-supp-scan", p, 120000).then(r => r.data),
+    suppExpert:  (p)   => send("nr-tracker-supp-expert", p, 90000).then(r => r.data)
   };
 })();
 
@@ -239,14 +244,15 @@ const detectLang = () => {
   return "es";
 };
 
-/* ───────────────── UNIFIED NAV (scanner) ───────────────── */
-// Navegación a la herramienta hermana del ecosistema supplement.
-// Experto vive DENTRO de la página del escáner (ya no es item de nav propio).
-// La app vive en un iframe → window.top para navegar la página completa.
-const SCANNER_URL = "https://neorejuvenation.app/scanner/";
-const navTop = (url) => {
-  try { window.top.location.href = url; }
-  catch { window.location.href = url; }
+/* ───────────────── SCANNER I18N ───────────────── */
+const SCAN_T = {
+  es: { scan_title:"Escáner de suplementos", scan_sub:"Fotografía la etiqueta de cualquier suplemento y obtén un análisis objetivo con puntuación de seguridad, eficacia y transparencia.", scan_cta:"Escanear suplemento", recent:"Escaneados recientemente", empty_recent:"Aún no has escaneado ningún producto.", step1:"Frontal del bote", step1s:"Nombre del producto y marca", step2:"Tabla de ingredientes", step2s:"Supplement Facts / Información nutricional", step3:"Otros ingredientes", step3s:"Resto de la etiqueta y advertencias", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analizar", loading:["Leyendo la etiqueta…","Identificando ingredientes…","Calculando puntuaciones…","Casi listo…"], back:"Volver", overall:"Índice global", safety:"Seguridad", efficacy:"Eficacia", transparency:"Transparencia", good:"Lo bueno", bad:"Atención", ingredients:"Ingredientes", alternatives:"Cómo mejorarlo", expert:"Experto", expert_sub:"Pregunta cualquier duda sobre suplementos", expert_title:"¿Por dónde empezamos?", q1:"¿Qué magnesio ayuda a dormir mejor?", q2:"¿Puedo combinar probióticos y vitaminas?", q3:"¿Colágeno en polvo o en cápsulas?", type_msg:"Escribe tu pregunta…", err:"Algo ha fallado. Inténtalo de nuevo.", thinking:"Pensando…" },
+  en: { scan_title:"Supplement scanner", scan_sub:"Photograph any supplement label and get an objective analysis with safety, efficacy and transparency scores.", scan_cta:"Scan supplement", recent:"Recently scanned", empty_recent:"You haven’t scanned any product yet.", step1:"Front of the bottle", step1s:"Product name and brand", step2:"Ingredients panel", step2s:"Supplement Facts", step3:"Other ingredients", step3s:"Rest of the label and warnings", optional:"Optional", add_photo:"Photo", retake:"Retake", analyze:"Analyze", loading:["Reading the label…","Identifying ingredients…","Calculating scores…","Almost there…"], back:"Back", overall:"Overall score", safety:"Safety", efficacy:"Efficacy", transparency:"Transparency", good:"Good", bad:"Watch out", ingredients:"Ingredients", alternatives:"How to improve it", expert:"Expert", expert_sub:"Ask any question about supplements", expert_title:"Where should we start?", q1:"Which magnesium helps you sleep best?", q2:"Can I mix probiotics and vitamins?", q3:"Collagen powder or capsules?", type_msg:"Type your question…", err:"Something went wrong. Try again.", thinking:"Thinking…" },
+  fr: { scan_title:"Scanner de compléments", scan_sub:"Photographiez l’étiquette de n’importe quel complément et obtenez une analyse objective avec scores de sécurité, efficacité et transparence.", scan_cta:"Scanner un complément", recent:"Scannés récemment", empty_recent:"Vous n’avez encore scanné aucun produit.", step1:"Face avant du flacon", step1s:"Nom du produit et marque", step2:"Tableau des ingrédients", step2s:"Valeurs nutritionnelles", step3:"Autres ingrédients", step3s:"Reste de l’étiquette et avertissements", optional:"Optionnel", add_photo:"Photo", retake:"Reprendre", analyze:"Analyser", loading:["Lecture de l’étiquette…","Identification des ingrédients…","Calcul des scores…","Presque fini…"], back:"Retour", overall:"Score global", safety:"Sécurité", efficacy:"Efficacité", transparency:"Transparence", good:"Points forts", bad:"Attention", ingredients:"Ingrédients", alternatives:"Comment l’améliorer", expert:"Expert", expert_sub:"Posez toute question sur les compléments", expert_title:"Par où commençons-nous ?", q1:"Quel magnésium aide à mieux dormir ?", q2:"Puis-je combiner probiotiques et vitamines ?", q3:"Collagène en poudre ou en gélules ?", type_msg:"Écrivez votre question…", err:"Une erreur est survenue. Réessayez.", thinking:"Réflexion…" },
+  it: { scan_title:"Scanner di integratori", scan_sub:"Fotografa l’etichetta di qualsiasi integratore e ottieni un’analisi oggettiva con punteggi di sicurezza, efficacia e trasparenza.", scan_cta:"Scansiona integratore", recent:"Scansionati di recente", empty_recent:"Non hai ancora scansionato nessun prodotto.", step1:"Fronte del flacone", step1s:"Nome del prodotto e marca", step2:"Tabella degli ingredienti", step2s:"Informazioni nutrizionali", step3:"Altri ingredienti", step3s:"Resto dell’etichetta e avvertenze", optional:"Opzionale", add_photo:"Foto", retake:"Ripeti", analyze:"Analizza", loading:["Lettura dell’etichetta…","Identificazione degli ingredienti…","Calcolo dei punteggi…","Quasi pronto…"], back:"Indietro", overall:"Punteggio globale", safety:"Sicurezza", efficacy:"Efficacia", transparency:"Trasparenza", good:"Punti di forza", bad:"Attenzione", ingredients:"Ingredienti", alternatives:"Come migliorarlo", expert:"Esperto", expert_sub:"Fai qualsiasi domanda sugli integratori", expert_title:"Da dove iniziamo?", q1:"Quale magnesio aiuta a dormire meglio?", q2:"Posso combinare probiotici e vitamine?", q3:"Collagene in polvere o in capsule?", type_msg:"Scrivi la tua domanda…", err:"Qualcosa è andato storto. Riprova.", thinking:"Sto pensando…" },
+  de: { scan_title:"Supplement-Scanner", scan_sub:"Fotografieren Sie das Etikett eines Nahrungsergänzungsmittels und erhalten Sie eine objektive Analyse mit Bewertungen zu Sicherheit, Wirksamkeit und Transparenz.", scan_cta:"Supplement scannen", recent:"Zuletzt gescannt", empty_recent:"Sie haben noch kein Produkt gescannt.", step1:"Vorderseite der Flasche", step1s:"Produktname und Marke", step2:"Zutatentabelle", step2s:"Nährwertangaben", step3:"Weitere Zutaten", step3s:"Rest des Etiketts und Warnhinweise", optional:"Optional", add_photo:"Foto", retake:"Wiederholen", analyze:"Analysieren", loading:["Etikett wird gelesen…","Zutaten werden identifiziert…","Bewertungen werden berechnet…","Fast fertig…"], back:"Zurück", overall:"Gesamtbewertung", safety:"Sicherheit", efficacy:"Wirksamkeit", transparency:"Transparenz", good:"Stärken", bad:"Achtung", ingredients:"Zutaten", alternatives:"Verbesserungsmöglichkeiten", expert:"Experte", expert_sub:"Stellen Sie jede Frage zu Supplementen", expert_title:"Womit fangen wir an?", q1:"Welches Magnesium hilft beim Schlafen?", q2:"Kann ich Probiotika und Vitamine kombinieren?", q3:"Kollagen als Pulver oder Kapseln?", type_msg:"Schreiben Sie Ihre Frage…", err:"Etwas ist schiefgelaufen. Versuchen Sie es erneut.", thinking:"Denke nach…" },
+  pt: { scan_title:"Scanner de suplementos", scan_sub:"Fotografe o rótulo de qualquer suplemento e obtenha uma análise objetiva com pontuações de segurança, eficácia e transparência.", scan_cta:"Escanear suplemento", recent:"Escaneados recentemente", empty_recent:"Você ainda não escaneou nenhum produto.", step1:"Frente do frasco", step1s:"Nome do produto e marca", step2:"Tabela de ingredientes", step2s:"Informação nutricional", step3:"Outros ingredientes", step3s:"Resto do rótulo e advertências", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analisar", loading:["Lendo o rótulo…","Identificando ingredientes…","Calculando pontuações…","Quase pronto…"], back:"Voltar", overall:"Índice global", safety:"Segurança", efficacy:"Eficácia", transparency:"Transparência", good:"Pontos fortes", bad:"Atenção", ingredients:"Ingredientes", alternatives:"Como melhorar", expert:"Especialista", expert_sub:"Pergunte qualquer dúvida sobre suplementos", expert_title:"Por onde começamos?", q1:"Qual magnésio ajuda a dormir melhor?", q2:"Posso combinar probióticos e vitaminas?", q3:"Colágeno em pó ou em cápsulas?", type_msg:"Escreva sua pergunta…", err:"Algo deu errado. Tente novamente.", thinking:"Pensando…" },
+  ea: { scan_title:"ماسح المكملات", scan_sub:"صوّر ملصق أي مكمل غذائي واحصل على تحليل موضوعي مع تقييمات الأمان والفعالية والشفافية.", scan_cta:"مسح مكمل", recent:"تم مسحها مؤخرًا", empty_recent:"لم تقم بمسح أي منتج بعد.", step1:"واجهة العبوة", step1s:"اسم المنتج والعلامة التجارية", step2:"جدول المكونات", step2s:"حقائق المكمل الغذائي", step3:"مكونات أخرى", step3s:"بقية الملصق والتحذيرات", optional:"اختياري", add_photo:"صورة", retake:"إعادة", analyze:"تحليل", loading:["قراءة الملصق…","تحديد المكونات…","حساب التقييمات…","اقتربنا…"], back:"رجوع", overall:"التقييم العام", safety:"الأمان", efficacy:"الفعالية", transparency:"الشفافية", good:"الإيجابيات", bad:"انتبه", ingredients:"المكونات", alternatives:"كيفية تحسينه", expert:"الخبير", expert_sub:"اسأل أي سؤال عن المكملات", expert_title:"من أين نبدأ؟", q1:"أي نوع من المغنيسيوم يساعد على النوم؟", q2:"هل يمكن الجمع بين البروبيوتيك والفيتامينات؟", q3:"الكولاجين بودرة أم كبسولات؟", type_msg:"اكتب سؤالك…", err:"حدث خطأ ما. حاول مرة أخرى.", thinking:"يفكر…" }
 };
 
 /* ───────────────── FEATURE FLAGS ───────────────── */
@@ -425,7 +431,7 @@ const injectFonts = () => {
   l.href = "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Almarai:wght@400;700&display=swap";
   document.head.appendChild(l);
   const s = document.createElement("style");
-  s.textContent = `*{box-sizing:border-box;margin:0;padding:0}body{background:${C.bg};font-feature-settings:"cv11","ss01","ss03";-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.nr-tnum{font-variant-numeric:tabular-nums}.nr-mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-feature-settings:"zero","ss01"}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#d6dbe8;border-radius:2px}@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.05);opacity:1}}@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes d1{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}@keyframes d2{0%,20%,80%,100%{transform:scale(0)}60%{transform:scale(1)}}@keyframes d3{0%,40%,100%{transform:scale(0)}80%{transform:scale(1.2)}}@keyframes orbRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.7);opacity:0}}@keyframes orbBreathe{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.06);opacity:1}}`;
+  s.textContent = `*{box-sizing:border-box;margin:0;padding:0}body{background:${C.bg};font-feature-settings:"cv11","ss01","ss03";-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.nr-tnum{font-variant-numeric:tabular-nums}.nr-expert-msg .nr-md-h{display:block;color:${C.text};font-family:Oswald,sans-serif;font-size:16px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;line-height:1.25;margin:24px 0 10px}.nr-expert-msg .nr-md-h:first-child{margin-top:2px}.nr-expert-msg p{margin:0 0 13px}.nr-expert-msg p:last-child{margin-bottom:0}.nr-expert-msg ul,.nr-expert-msg ol{margin:4px 0 16px;padding-inline-start:20px}.nr-expert-msg li{margin-bottom:8px}.nr-expert-msg li::marker{color:${C.brand1}}.nr-expert-msg strong{color:${C.brand1};font-weight:700}.nr-expert-msg code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:#e8f5ef;padding:1px 6px;border-radius:5px}.nr-mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-feature-settings:"zero","ss01"}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#d6dbe8;border-radius:2px}@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes breathe{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.05);opacity:1}}@keyframes checkPop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes d1{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}@keyframes d2{0%,20%,80%,100%{transform:scale(0)}60%{transform:scale(1)}}@keyframes d3{0%,40%,100%{transform:scale(0)}80%{transform:scale(1.2)}}@keyframes orbRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.7);opacity:0}}@keyframes orbBreathe{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.06);opacity:1}}`;
   document.head.appendChild(s);
 };
 
@@ -1304,6 +1310,374 @@ function SettingsView({ rems, onRem, subscribed, onRegen, routine, compactManual
 }
 
 /* ───────────────── MAIN APP ───────────────── */
+/* ───────────────── SCANNER + EXPERTO (integrados) ─────────────────
+   Portado del shortcode [nr_supp_scanner] al estilo del tracker.
+   Backend igual (nr-supp/v1) pero vía bridge postMessage: el parent
+   (snippet "NR Tracker — Scanner bridge") hace los fetch con nonce. */
+
+const scanScoreColor = (v) => (v >= 75 ? C.brand1 : v >= 50 ? C.morning.icon : C.afternoon.icon);
+
+/* Mini-Markdown seguro para las respuestas del Experto (escapa primero). */
+const escHtml = (s) => { const d = document.createElement("div"); d.textContent = String(s == null ? "" : s); return d.innerHTML; };
+const mdInline = (line) => line
+  .replace(/`([^`]+)`/g, "<code>$1</code>")
+  .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+  .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+const mdToHtml = (text) => {
+  const lines = escHtml(text).split("\n");
+  const out = []; let inUl = false, inOl = false;
+  const closeLists = () => {
+    if (inUl) { out.push("</ul>"); inUl = false; }
+    if (inOl) { out.push("</ol>"); inOl = false; }
+  };
+  lines.forEach(l => {
+    const h = l.match(/^#{1,4}\s+(.+)/);
+    const ul = l.match(/^\s*[-*•]\s+(.+)/);
+    const ol = l.match(/^\s*\d+[.)]\s+(.+)/);
+    if (h)       { closeLists(); out.push('<span class="nr-md-h">' + mdInline(h[1]) + "</span>"); }
+    else if (ul) { if (inOl) { out.push("</ol>"); inOl = false; } if (!inUl) { out.push("<ul>"); inUl = true; } out.push("<li>" + mdInline(ul[1]) + "</li>"); }
+    else if (ol) { if (inUl) { out.push("</ul>"); inUl = false; } if (!inOl) { out.push("<ol>"); inOl = true; } out.push("<li>" + mdInline(ol[1]) + "</li>"); }
+    else if (l.trim() === "") { closeLists(); }
+    else { closeLists(); out.push("<p>" + mdInline(l) + "</p>"); }
+  });
+  closeLists();
+  return out.join("");
+};
+
+/* Compresión de foto a JPEG ≤1280px (mismo comportamiento que el shortcode). */
+const compressPhoto = (file) => new Promise((resolve, reject) => {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    const MAX = 1280;
+    let w = img.width, h = img.height;
+    if (w > MAX || h > MAX) {
+      if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+      else { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    c.getContext("2d").drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(url);
+    resolve(c.toDataURL("image/jpeg", 0.82));
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("img")); };
+  img.src = url;
+});
+
+function ScoreRing({ score, label }) {
+  const R = 62, CIRC = 2 * Math.PI * R;
+  const [off, setOff] = useState(CIRC);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setOff(CIRC * (1 - score / 100))));
+    return () => cancelAnimationFrame(id);
+  }, [score, CIRC]);
+  return (
+    <div style={{ display: "flex", justifyContent: "center", margin: "6px 0 18px" }}>
+      <div style={{ position: "relative", width: 150, height: 150 }}>
+        <svg width="150" height="150" viewBox="0 0 150 150" style={{ transform: "rotate(-90deg)" }}>
+          <circle cx="75" cy="75" r={R} fill="none" strokeWidth="9" stroke={C.border} />
+          <circle cx="75" cy="75" r={R} fill="none" strokeWidth="9" strokeLinecap="round"
+            stroke={scanScoreColor(score)} strokeDasharray={CIRC} strokeDashoffset={off}
+            style={{ transition: "stroke-dashoffset 1s cubic-bezier(.22,1,.36,1)" }} />
+        </svg>
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <strong className="nr-mono" style={{ fontSize: 36, fontWeight: 700, lineHeight: 1, color: scanScoreColor(score) }}>{score}</strong>
+          <span style={{ fontFamily: "Oswald,sans-serif", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: C.textMuted, marginTop: 4 }}>{label}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScannerView({ lang, active }) {
+  const st = SCAN_T[lang] || SCAN_T.es;
+  const [sub, setSub] = useState("home"); // home | scan | loading | product | expert
+  const [photos, setPhotos] = useState([null, null, null]);
+  const [product, setProduct] = useState(null);
+  const [recent, setRecent] = useState([]);
+  const [chat, setChat] = useState([]);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [error, setError] = useState(null);
+  const [loadMsg, setLoadMsg] = useState(0);
+  const loadedRef = useRef(false);
+  const fileRefs = [useRef(null), useRef(null), useRef(null)];
+  const chatEndRef = useRef(null);
+
+  const loadRecent = useCallback(() => {
+    bridge.suppRecent().then(list => setRecent(list || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (active && !loadedRef.current) { loadedRef.current = true; loadRecent(); }
+  }, [active, loadRecent]);
+
+  /* Rotación de mensajes de carga */
+  useEffect(() => {
+    if (sub !== "loading") return;
+    setLoadMsg(0);
+    const id = setInterval(() => setLoadMsg(i => Math.min(i + 1, st.loading.length - 1)), 3500);
+    return () => clearInterval(id);
+  }, [sub, st.loading.length]);
+
+  /* Autoscroll del chat */
+  useEffect(() => {
+    if (sub === "expert" && chatEndRef.current) chatEndRef.current.scrollIntoView({ block: "end" });
+  }, [chat, chatBusy, sub]);
+
+  const onPhoto = (i, file) => {
+    if (!file) return;
+    compressPhoto(file).then(dataUrl => {
+      setPhotos(p => { const n = [...p]; n[i] = dataUrl; return n; });
+    }).catch(() => setError(st.err));
+  };
+
+  const doScan = () => {
+    setSub("loading"); setError(null);
+    bridge.suppScan({ photos: photos.filter(Boolean), lang }).then(p => {
+      setProduct(p); setSub("product"); loadRecent();
+    }).catch(e => {
+      setError(e.message || st.err); setSub("scan");
+    });
+  };
+
+  const openProduct = (id) => {
+    setSub("loading"); setError(null);
+    bridge.suppProduct(id).then(p => { setProduct(p); setSub("product"); })
+      .catch(e => { setError(e.message || st.err); setSub("home"); });
+  };
+
+  const sendExpert = (text) => {
+    const next = [...chat, { role: "user", content: text }];
+    setChat(next); setChatBusy(true); setError(null); setChatInput("");
+    bridge.suppExpert({ messages: next, lang }).then(r => {
+      setChat(c => [...c, { role: "assistant", content: r.reply || "" }]);
+      setChatBusy(false);
+    }).catch(e => { setChatBusy(false); setError(e.message || st.err); });
+  };
+
+  /* ── estilos compartidos ── */
+  const card = { background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16 };
+  const h1 = { fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 22, lineHeight: 1.15, color: C.text, letterSpacing: "-0.01em", margin: 0 };
+  const sectionTitle = { fontFamily: "Oswald,sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: C.text, margin: "22px 0 8px" };
+  const backBtn = { background: "none", border: 0, cursor: "pointer", padding: "6px 0", fontFamily: "Oswald,sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: C.textMuted, marginBottom: 10, display: "inline-flex", alignItems: "center", gap: 4 };
+  const gradBtn = { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "15px 20px", border: 0, borderRadius: 14, fontFamily: "Oswald,sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", cursor: "pointer", background: C.brandGrad, color: "#fff", boxShadow: "0 4px 22px rgba(15,110,86,0.25)" };
+  const errBox = error ? (
+    <div style={{ background: C.afternoon.bg, border: `1px solid ${C.afternoon.border}`, color: C.afternoon.text, borderRadius: 12, padding: "12px 14px", fontSize: 13, margin: "12px 0" }}>{error}</div>
+  ) : null;
+
+  /* ── HOME ── */
+  if (sub === "home") return (
+    <div>
+      <div style={{ fontSize: 10, color: C.textMuted, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500, marginBottom: 4 }}>NeoRejuvenation</div>
+      <h1 style={h1}>{st.scan_title}</h1>
+      <p style={{ fontSize: 13, color: C.textDim, lineHeight: 1.55, margin: "8px 0 18px" }}>{st.scan_sub}</p>
+      {errBox}
+      <button style={gradBtn} onClick={() => { haptic(8); setPhotos([null, null, null]); setError(null); setSub("scan"); }}>
+        {Icon.scan(16)} {st.scan_cta}
+      </button>
+
+      {/* Experto: opción bajo el escáner */}
+      <button
+        onClick={() => { haptic(8); setError(null); setSub("expert"); }}
+        style={{ ...card, width: "100%", marginTop: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, textAlign: "inherit", fontFamily: "inherit" }}
+      >
+        <div style={{ width: 38, height: 38, borderRadius: 12, background: "#e8f5ef", color: C.brand1, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          {Icon.chat(17)}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 600, fontSize: 15, color: C.text }}>{st.expert}</div>
+          <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{st.expert_sub}</div>
+        </div>
+        <span style={{ color: C.textGhost }}>{Icon.chevRight(16)}</span>
+      </button>
+
+      <h2 style={sectionTitle}>{st.recent}</h2>
+      {recent.length ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))", gap: 10 }}>
+          {recent.map(p => (
+            <button key={p.id} onClick={() => openProduct(p.id)} style={{ ...card, padding: "14px 12px", cursor: "pointer", textAlign: "inherit", fontFamily: "inherit" }}>
+              <div className="nr-mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: scanScoreColor(p.overall_score) }}>{p.overall_score}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.text, margin: "8px 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
+              <div style={{ fontSize: 11, color: C.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.brand}</div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div style={{ fontSize: 13, color: C.textMuted, padding: "16px 0", textAlign: "center" }}>{st.empty_recent}</div>
+      )}
+    </div>
+  );
+
+  /* ── SCAN ── */
+  if (sub === "scan") {
+    const steps = [
+      { title: st.step1, s: st.step1s, opt: false },
+      { title: st.step2, s: st.step2s, opt: true },
+      { title: st.step3, s: st.step3s, opt: true }
+    ];
+    return (
+      <div>
+        <button style={backBtn} onClick={() => { setSub("home"); loadRecent(); }}>{Icon.chevLeft(13)} {st.back}</button>
+        <h1 style={h1}>{st.scan_cta}</h1>
+        {errBox}
+        <div style={{ marginTop: 14 }}>
+          {steps.map((s, i) => (
+            <div key={i} style={{ ...card, display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
+              <div
+                onClick={() => fileRefs[i].current && fileRefs[i].current.click()}
+                style={{ width: 64, height: 64, borderRadius: 12, flexShrink: 0, border: photos[i] ? `1.5px solid ${C.brand1}` : `1.5px dashed ${C.borderStrong}`, background: C.bgSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, color: C.textMuted, overflow: "hidden", cursor: "pointer" }}
+              >
+                {photos[i] ? <img src={photos[i]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "✛"}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{s.title}</div>
+                <div style={{ fontSize: 11, color: C.textMuted }}>{s.s}{s.opt ? " · " + st.optional : ""}</div>
+                <button
+                  onClick={() => fileRefs[i].current && fileRefs[i].current.click()}
+                  style={{ fontFamily: "Oswald,sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: C.brand1, background: "none", border: 0, cursor: "pointer", padding: "4px 0" }}
+                >
+                  {photos[i] ? st.retake : "📷 " + st.add_photo}
+                </button>
+              </div>
+              <input ref={fileRefs[i]} type="file" accept="image/*" capture="environment" hidden onChange={e => onPhoto(i, e.target.files && e.target.files[0])} />
+            </div>
+          ))}
+        </div>
+        <button style={{ ...gradBtn, marginTop: 6, ...(photos[0] ? {} : { background: C.border, color: C.textMuted, boxShadow: "none", cursor: "not-allowed" }) }} disabled={!photos[0]} onClick={doScan}>
+          {st.analyze}
+        </button>
+      </div>
+    );
+  }
+
+  /* ── LOADING ── */
+  if (sub === "loading") return (
+    <div style={{ textAlign: "center", padding: "60px 20px" }}>
+      <div style={{ width: 44, height: 44, margin: "0 auto 18px", borderRadius: "50%", border: `3px solid ${C.border}`, borderTop: `3px solid ${C.brand1}`, animation: "spin 1s linear infinite" }} />
+      <div style={{ fontFamily: "Oswald,sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: C.textMuted }}>{st.loading[loadMsg]}</div>
+    </div>
+  );
+
+  /* ── PRODUCT ── */
+  if (sub === "product") {
+    const p = product || {};
+    const s = p.scores || {};
+    const bar = (label, val) => (
+      <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "10px 0" }}>
+        <span style={{ fontFamily: "Oswald,sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: C.textMuted, width: 105, flexShrink: 0 }}>{label}</span>
+        <div style={{ flex: 1, height: 7, borderRadius: 99, background: C.border, overflow: "hidden" }}>
+          <div style={{ height: "100%", borderRadius: 99, width: (val || 0) + "%", background: scanScoreColor(val || 0), transition: "width 0.9s cubic-bezier(.22,1,.36,1)" }} />
+        </div>
+        <span className="nr-mono" style={{ fontSize: 13, fontWeight: 700, width: 32, textAlign: "end", flexShrink: 0, color: C.text }}>{val || 0}</span>
+      </div>
+    );
+    const list = (items, good) => (
+      <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0 }}>
+        {items.map((x, i) => (
+          <li key={i} style={{ display: "flex", gap: 10, fontSize: 13.5, lineHeight: 1.45, marginBottom: 9, color: C.text }}>
+            <span style={{ width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", background: good ? C.brand1 : C.afternoon.icon }}>{good ? "+" : "–"}</span>
+            <span>{x}</span>
+          </li>
+        ))}
+      </ul>
+    );
+    return (
+      <div>
+        <button style={backBtn} onClick={() => { setSub("home"); loadRecent(); }}>{Icon.chevLeft(13)} {st.back}</button>
+        <div style={{ fontFamily: "Oswald,sans-serif", fontSize: 11, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.08em" }}>{p.brand}</div>
+        <h1 style={{ ...h1, marginBottom: 4 }}>{p.product_name}</h1>
+        <ScoreRing score={s.overall || 0} label={st.overall} />
+        <div style={card}>
+          {bar(st.safety, s.safety)}
+          {bar(st.efficacy, s.efficacy)}
+          {bar(st.transparency, s.transparency)}
+          {p.safety_summary && <p style={{ fontSize: 13, lineHeight: 1.55, color: C.textDim, margin: "10px 0 0" }}>{p.safety_summary}</p>}
+        </div>
+        {p.description && <p style={{ fontSize: 13.5, lineHeight: 1.55, color: C.text, margin: "12px 0 0" }}>{p.description}</p>}
+        {p.good && p.good.length > 0 && <><h2 style={sectionTitle}>{st.good}</h2>{list(p.good, true)}</>}
+        {p.bad && p.bad.length > 0 && <><h2 style={sectionTitle}>{st.bad}</h2>{list(p.bad, false)}</>}
+        {p.ingredients && p.ingredients.length > 0 && (
+          <>
+            <h2 style={sectionTitle}>{st.ingredients}</h2>
+            <div style={card}>
+              <table className="nr-mono" style={{ fontSize: 12, width: "100%", borderCollapse: "collapse", color: C.text }}>
+                <tbody>
+                  {p.ingredients.map((ing, i) => (
+                    <tr key={i}>
+                      <td style={{ padding: "7px 4px", borderBottom: i === p.ingredients.length - 1 ? 0 : `1px solid ${C.border}` }}>{ing.name}</td>
+                      <td style={{ padding: "7px 4px", borderBottom: i === p.ingredients.length - 1 ? 0 : `1px solid ${C.border}`, textAlign: "end", whiteSpace: "nowrap", color: C.textMuted }}>{[ing.amount, ing.unit].filter(Boolean).join(" ")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+        {p.alternatives_hint && p.alternatives_hint.length > 0 && <><h2 style={sectionTitle}>{st.alternatives}</h2>{list(p.alternatives_hint, true)}</>}
+        {p.disclaimer && <p style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 16, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>{p.disclaimer}</p>}
+      </div>
+    );
+  }
+
+  /* ── EXPERT ── */
+  return (
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "55vh" }}>
+      <button style={backBtn} onClick={() => { setSub("home"); loadRecent(); }}>{Icon.chevLeft(13)} {st.back}</button>
+      {chat.length === 0 ? (
+        <div>
+          <div style={{ textAlign: "center", margin: "26px 0 20px" }}>
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: "#e8f5ef", color: C.brand1, display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>{Icon.chat(20)}</div>
+            <h1 style={{ ...h1, fontSize: 20 }}>{st.expert_title}</h1>
+          </div>
+          {[st.q1, st.q2, st.q3].map((q, i) => (
+            <button key={i} onClick={() => sendExpert(q)} style={{ ...card, width: "100%", padding: "13px 16px", fontSize: 13.5, color: C.text, cursor: "pointer", marginBottom: 8, textAlign: "inherit", fontFamily: "inherit", transition: "border-color 0.12s" }}>
+              {q}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+          {chat.map((m, i) => m.role === "user" ? (
+            <div key={i} style={{ alignSelf: lang === "ea" ? "flex-start" : "flex-end", maxWidth: "85%", padding: "11px 14px", borderRadius: 16, borderBottomRightRadius: lang === "ea" ? 16 : 4, borderBottomLeftRadius: lang === "ea" ? 4 : 16, fontSize: 13.5, lineHeight: 1.5, background: C.brandGrad, color: "#fff", whiteSpace: "pre-wrap" }}>{m.content}</div>
+          ) : (
+            <div key={i} className="nr-expert-msg" style={{ ...card, padding: "14px 16px", fontSize: 14, lineHeight: 1.65, color: C.text }} dangerouslySetInnerHTML={{ __html: mdToHtml(m.content) }} />
+          ))}
+          {chatBusy && (
+            <div style={{ ...card, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10, color: C.textMuted, fontSize: 12, fontFamily: "Oswald,sans-serif", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              <span style={{ display: "inline-flex", gap: 4 }}>
+                <i style={{ width: 7, height: 7, borderRadius: "50%", background: C.brand1, display: "inline-block", animation: "d1 1.2s ease-in-out infinite" }} />
+                <i style={{ width: 7, height: 7, borderRadius: "50%", background: C.brand1, display: "inline-block", animation: "d2 1.2s ease-in-out infinite" }} />
+                <i style={{ width: 7, height: 7, borderRadius: "50%", background: C.brand1, display: "inline-block", animation: "d3 1.2s ease-in-out infinite" }} />
+              </span>
+              {st.thinking}
+            </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+      )}
+      {errBox}
+      <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+        <input
+          type="text"
+          value={chatInput}
+          disabled={chatBusy}
+          placeholder={st.type_msg}
+          onChange={e => setChatInput(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && chatInput.trim()) sendExpert(chatInput.trim()); }}
+          style={{ flex: 1, padding: "13px 16px", borderRadius: 999, border: `1.5px solid ${C.borderStrong}`, fontFamily: "inherit", fontSize: 14, background: C.surface, color: C.text, outline: "none" }}
+        />
+        <button
+          onClick={() => { if (chatInput.trim()) sendExpert(chatInput.trim()); }}
+          disabled={chatBusy || !chatInput.trim()}
+          style={{ width: 48, height: 48, borderRadius: "50%", border: 0, cursor: chatBusy ? "default" : "pointer", background: (chatBusy || !chatInput.trim()) ? C.border : C.brandGrad, color: "#fff", fontSize: 18, flexShrink: 0 }}
+        >↑</button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [lang] = useState(() => detectLang());
   const t = { ...(T[lang] || T.es), ...(EXTRA_T[lang] || EXTRA_T.es) };
@@ -1744,13 +2118,12 @@ const confirmRegen = () => {
   const viewDateObj = new Date(viewDate + "T12:00:00");
   const eyebrowDate = viewDateObj.toLocaleDateString(t.date_locale, { weekday: "long", day: "numeric", month: "long" });
 
-  /* Nav superior condensada: Suplementos | Escáner | Progreso | Ajustes.
-     "scanner" es externo (navega window.top a la página del escáner, donde
-     también vive Experto). El resto son vistas internas del tracker. */
+  /* Nav superior condensada: Suplementos | Progreso | Escáner | Ajustes.
+     "scanner" es una vista interna (Escáner + Experto integrados vía bridge). */
   const tabs = [
     { id: "today", l: t.nav_tracker, icon: Icon.pill },
     { id: "progress", l: t.tab_progress, icon: Icon.chart },
-    { id: "scanner", l: t.nav_scanner, icon: Icon.scan, external: SCANNER_URL },
+    { id: "scanner", l: t.nav_scanner, icon: Icon.scan },
     { id: "settings", l: t.tab_settings, icon: Icon.gear }
   ];
 
@@ -1802,14 +2175,11 @@ const confirmRegen = () => {
             borderRadius: 999, boxShadow: "0 6px 24px rgba(26,34,64,0.08)"
           }}>
             {tabs.map(tab => {
-              const active = !tab.external && view === tab.id;
+              const active = view === tab.id;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => {
-                    if (tab.external) { haptic(8); navTop(tab.external); }
-                    else setView(tab.id);
-                  }}
+                  onClick={() => { if (!active) { haptic(8); setView(tab.id); } }}
                   style={{
                     flex: 1, padding: "7px 2px 6px", border: "none",
                     background: active ? "#e8f5ef" : "transparent",
@@ -2062,6 +2432,11 @@ const confirmRegen = () => {
             )}
 
             {view === "progress" && <ProgressView history={history} streak={streak} record={record} routine={routine} t={t} />}
+
+            {/* Escáner + Experto: siempre montado para conservar chat/fotos al cambiar de tab */}
+            <div style={{ display: view === "scanner" ? "block" : "none" }}>
+              <ScannerView lang={lang} active={view === "scanner"} />
+            </div>
 
             {view === "settings" && (
               <SettingsView

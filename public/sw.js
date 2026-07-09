@@ -5,8 +5,8 @@
  * Cachea los assets estáticos del bundle Vite para arranque instantáneo
  * y soporte offline básico.
  *
- * NO gestiona push notifications: eso lo hace OneSignalSDKWorker.js
- * en el dominio padre (neorejuvenation.app).
+ * NO gestiona push notifications: las suscripciones y el envío los gestiona
+ * neo-push desde el dominio padre (neorejuvenation.app).
  *
  * NO cachea HTML: el documento se sirve siempre desde red para que los
  * deploys nuevos se vean inmediatamente.

@@ -106,9 +106,11 @@ const bridge = (() => {
     pushState:   (p)   => send("nr-tracker-state-push", p).then(r => r.data),
     generate:    (p)   => send("nr-tracker-generate", p, 60000).then(r => ({ status: r.status, data: r.data, ok: r.ok })),
     quota:       ()    => send("nr-tracker-quota", null).then(r => r.data),
-    onesignalTag: (action) => send("nr-tracker-onesignal-tag", { action: action || "add" }).then(r => r.data),
     pushTest:    ()    => send("nr-tracker-push-test", {}).then(r => ({ ok: r.ok, status: r.status, data: r.data })),
-    requestPushPermission: () => send("nr-tracker-request-push-permission", null, 30000).then(r => ({ ok: r.ok, permission: r.permission, subscribed: r.subscribed, error: r.error }))
+    // Estado de suscripción neo-push: el parent llama NRPush.isSubscribed().
+    // Timeout corto y resuelve a null (desconocido) si el bridge no responde,
+    // para que Ajustes degrade con elegancia (nunca error ni spinner infinito).
+    isSubscribed: ()   => send("nr-tracker-is-subscribed", null, 5000).then(r => (typeof r.subscribed === "boolean" ? r.subscribed : null))
   };
 })();
 
@@ -277,35 +279,24 @@ const sanitizeText = (txt) => {
 
 /* ───────────────── TRANSLATIONS ───────────────── */
 const T = {
-  es: { trackerSub:"Supplement Tracker", today_label:"hoy", tab_today:"Hoy", tab_progress:"Progreso", tab_settings:"Ajustes", morning:"Mañana", afternoon:"Tarde", night:"Noche", morning_hint:"Al despertar · Con desayuno", afternoon_hint:"Mediodía · Con comida", night_hint:"Antes de dormir · Con cena", morning_notif:"Mañana", afternoon_notif:"Tarde", night_notif:"Noche", freq_alternate:"Cada 2-3 días", freq_weekly:"2-3×/semana", hide_info:"Ocultar", more_info:"Más info", step1_title:"¿Cuáles son tus objetivos?", step1_sub:"Selecciona todos los que apliquen. Adaptaremos tu rutina.", step2_title:"Contraindicaciones", step2_sub:"Es importante para tu seguridad. Sé honesto/a.", step3_title:"¡Todo listo!", step3_sub:"Crearemos tu rutina personalizada basada en el método NeoRejuvenation.", step3_disclaimer:"Esta información es educativa. Consulta siempre con un profesional sanitario antes de iniciar cualquier suplementación.", btn_back:"Atrás", btn_continue:"Continuar", btn_create:"Crear mi rutina", gen_title:"Creando tu rutina personalizada", gen_sub:"Estamos analizando tus objetivos y diseñando la combinación óptima de suplementos NeoRejuvenation", ai_label:"Tu rutina personalizada", today_header:"Tu rutina de hoy", streak_label:"días en racha", complete_title:"¡Rutina completada!", complete_sub:"Has completado todos tus suplementos de hoy. Tu cuerpo te lo agradece.", progress_title:"Tu progreso", progress_sub:"Últimos 30 días", streak_card_label:"Racha activa", streak_days:"días consecutivos", record_label:"Récord", record_days:"días", last7:"Últimos 7 días", weekly_avg:"Prom.", routine_title:"Tu rutina actual", total_supps:"suplementos en total", settings_title:"Ajustes", reminders_title:"Recordatorios", notif_btn:"Activar notificaciones", notif_granted:"Notificaciones activadas", notif_hint:"Los recordatorios funcionan mientras tengas esta página abierta.", routine_section:"Rutina", regenerate_hint:"¿Quieres ajustar tus objetivos o regenerar tu rutina?", regenerate_btn:"Crear nueva rutina", reminder_prefix:"Recordatorio", fallback_msg:"Tu rutina base NeoRejuvenation está lista. Vitamina C + Reishi son los pilares fundamentales de tu regeneración celular diaria.", fallback_warning:"Consulta con un médico antes de iniciar cualquier suplementación.", compact_label:"Modo compacto", compact_hint:"Oculta los beneficios para ver más suplementos de un vistazo", viewing_past:"Viendo día pasado", back_to_today:"Volver a hoy", swipe_hint:"Desliza ← → para cambiar de día", milestone_cta:"Continuar", day_names:["D","L","M","X","J","V","S"], date_locale:"es-ES" },
-  en: { trackerSub:"Supplement Tracker", today_label:"today", tab_today:"Today", tab_progress:"Progress", tab_settings:"Settings", morning:"Morning", afternoon:"Afternoon", night:"Night", morning_hint:"Upon waking · With breakfast", afternoon_hint:"Midday · With lunch", night_hint:"Before sleep · With dinner", morning_notif:"Morning", afternoon_notif:"Afternoon", night_notif:"Night", freq_alternate:"Every 2-3 days", freq_weekly:"2-3×/week", hide_info:"Hide", more_info:"More info", step1_title:"What are your goals?", step1_sub:"Select all that apply. We'll adapt your routine.", step2_title:"Contraindications", step2_sub:"This is important for your safety. Please be honest.", step3_title:"All set!", step3_sub:"We'll create your personalized routine based on the NeoRejuvenation method.", step3_disclaimer:"This information is educational. Always consult a healthcare professional before starting any supplementation.", btn_back:"Back", btn_continue:"Continue", btn_create:"Create my routine", gen_title:"Creating your personalized routine", gen_sub:"We're analyzing your goals and designing the optimal NeoRejuvenation supplement combination", ai_label:"Your personalized routine", today_header:"Your routine today", streak_label:"day streak", complete_title:"Routine complete!", complete_sub:"You have completed all your supplements for today. Your body thanks you.", progress_title:"Your progress", progress_sub:"Last 30 days", streak_card_label:"Active streak", streak_days:"consecutive days", record_label:"Record", record_days:"days", last7:"Last 7 days", weekly_avg:"Avg.", routine_title:"Your current routine", total_supps:"supplements total", settings_title:"Settings", reminders_title:"Reminders", notif_btn:"Enable notifications", notif_granted:"Notifications enabled", notif_hint:"Reminders work while this page is open.", routine_section:"Routine", regenerate_hint:"Want to adjust your goals or regenerate your routine?", regenerate_btn:"Create new routine", reminder_prefix:"Reminder", fallback_msg:"Your base NeoRejuvenation routine is ready. Vitamin C + Reishi are the fundamental pillars of your daily cellular regeneration.", fallback_warning:"Consult a doctor before starting any supplementation.", compact_label:"Compact mode", compact_hint:"Hide benefits to see more supplements at a glance", viewing_past:"Viewing past day", back_to_today:"Back to today", swipe_hint:"Swipe ← → to change day", milestone_cta:"Continue", day_names:["Su","Mo","Tu","We","Th","Fr","Sa"], date_locale:"en-US" },
-  fr: { trackerSub:"Supplement Tracker", today_label:"aujourd'hui", tab_today:"Aujourd'hui", tab_progress:"Progrès", tab_settings:"Réglages", morning:"Matin", afternoon:"Après-midi", night:"Nuit", morning_hint:"Au réveil · Avec le petit-déjeuner", afternoon_hint:"Midi · Avec le déjeuner", night_hint:"Avant de dormir · Avec le dîner", morning_notif:"Matin", afternoon_notif:"Après-midi", night_notif:"Nuit", freq_alternate:"Tous les 2-3 jours", freq_weekly:"2-3×/semaine", hide_info:"Masquer", more_info:"Plus d'infos", step1_title:"Quels sont vos objectifs ?", step1_sub:"Sélectionnez tout ce qui s'applique. Nous adapterons votre routine.", step2_title:"Contre-indications", step2_sub:"C'est important pour votre sécurité. Soyez honnête.", step3_title:"Tout est prêt !", step3_sub:"Nous créerons votre routine personnalisée basée sur la méthode NeoRejuvenation.", step3_disclaimer:"Ces informations sont éducatives. Consultez toujours un professionnel de santé.", btn_back:"Retour", btn_continue:"Continuer", btn_create:"Créer ma routine", gen_title:"Création de votre routine", gen_sub:"Nous analysons vos objectifs et conçoit la combinaison optimale", ai_label:"Votre routine personnalisée", today_header:"Votre routine du jour", streak_label:"jours de suite", complete_title:"Routine complète !", complete_sub:"Vous avez pris tous vos suppléments aujourd'hui. Votre corps vous remercie.", progress_title:"Votre progrès", progress_sub:"30 derniers jours", streak_card_label:"Série active", streak_days:"jours consécutifs", record_label:"Record", record_days:"jours", last7:"7 derniers jours", weekly_avg:"Moy.", routine_title:"Votre routine actuelle", total_supps:"suppléments au total", settings_title:"Réglages", reminders_title:"Rappels", notif_btn:"Activer les notifications", notif_granted:"Notifications activées", notif_hint:"Les rappels fonctionnent tant que cette page est ouverte.", routine_section:"Routine", regenerate_hint:"Voulez-vous ajuster vos objectifs ou régénérer votre routine ?", regenerate_btn:"Créer une nouvelle routine", reminder_prefix:"Rappel", fallback_msg:"Votre routine NeoRejuvenation de base est prête. Vitamine C + Reishi sont les piliers fondamentaux.", fallback_warning:"Consultez un médecin avant de commencer toute supplémentation.", compact_label:"Mode compact", compact_hint:"Masquer les bénéfices pour voir plus de suppléments d'un coup d'œil", viewing_past:"Visualisation d'un jour passé", back_to_today:"Retour à aujourd'hui", swipe_hint:"Glissez ← → pour changer de jour", milestone_cta:"Continuer", day_names:["Di","Lu","Ma","Me","Je","Ve","Sa"], date_locale:"fr-FR" },
-  de: { trackerSub:"Supplement Tracker", today_label:"heute", tab_today:"Heute", tab_progress:"Fortschritt", tab_settings:"Einstellungen", morning:"Morgen", afternoon:"Nachmittag", night:"Nacht", morning_hint:"Beim Aufwachen · Mit dem Frühstück", afternoon_hint:"Mittags · Mit dem Mittagessen", night_hint:"Vor dem Schlafen · Mit dem Abendessen", morning_notif:"Morgen", afternoon_notif:"Nachmittag", night_notif:"Nacht", freq_alternate:"Alle 2-3 Tage", freq_weekly:"2-3×/Woche", hide_info:"Weniger", more_info:"Mehr Info", step1_title:"Was sind Ihre Ziele?", step1_sub:"Wählen Sie alles Zutreffende. Wir passen Ihre Routine an.", step2_title:"Kontraindikationen", step2_sub:"Dies ist wichtig für Ihre Sicherheit.", step3_title:"Alles bereit!", step3_sub:"Wir erstellen Ihre personalisierte Routine basierend auf der NeoRejuvenation-Methode.", step3_disclaimer:"Diese Informationen sind pädagogisch. Konsultieren Sie immer einen Arzt.", btn_back:"Zurück", btn_continue:"Weiter", btn_create:"Meine Routine erstellen", gen_title:"Ihre Routine wird erstellt", gen_sub:"Wir analysieren Ihre Ziele und entwirft die optimale Supplementkombination", ai_label:"Ihre personalisierte Routine", today_header:"Ihre Routine heute", streak_label:"Tage in Folge", complete_title:"Routine abgeschlossen!", complete_sub:"Sie haben alle heutigen Supplemente eingenommen.", progress_title:"Ihr Fortschritt", progress_sub:"Letzte 30 Tage", streak_card_label:"Aktive Serie", streak_days:"aufeinanderfolgende Tage", record_label:"Rekord", record_days:"Tage", last7:"Letzte 7 Tage", weekly_avg:"Ø", routine_title:"Ihre aktuelle Routine", total_supps:"Supplemente insgesamt", settings_title:"Einstellungen", reminders_title:"Erinnerungen", notif_btn:"Benachrichtigungen aktivieren", notif_granted:"Benachrichtigungen aktiviert", notif_hint:"Erinnerungen funktionieren solange diese Seite geöffnet ist.", routine_section:"Routine", regenerate_hint:"Möchten Sie Ihre Ziele anpassen oder Ihre Routine neu generieren?", regenerate_btn:"Neue Routine erstellen", reminder_prefix:"Erinnerung", fallback_msg:"Ihre NeoRejuvenation-Basisroutine ist bereit. Vitamin C + Reishi sind die grundlegenden Säulen.", fallback_warning:"Konsultieren Sie einen Arzt.", compact_label:"Kompakter Modus", compact_hint:"Vorteile ausblenden, um mehr Supplemente auf einen Blick zu sehen", viewing_past:"Vergangener Tag", back_to_today:"Zurück zu heute", swipe_hint:"Wischen ← → um den Tag zu wechseln", milestone_cta:"Weiter", day_names:["So","Mo","Di","Mi","Do","Fr","Sa"], date_locale:"de-DE" },
-  pt: { trackerSub:"Supplement Tracker", today_label:"hoje", tab_today:"Hoje", tab_progress:"Progresso", tab_settings:"Configurações", morning:"Manhã", afternoon:"Tarde", night:"Noite", morning_hint:"Ao acordar · Com o café da manhã", afternoon_hint:"Ao meio-dia · Com o almoço", night_hint:"Antes de dormir · Com o jantar", morning_notif:"Manhã", afternoon_notif:"Tarde", night_notif:"Noite", freq_alternate:"A cada 2-3 dias", freq_weekly:"2-3×/semana", hide_info:"Ocultar", more_info:"Mais info", step1_title:"Quais são os seus objetivos?", step1_sub:"Selecione todos os que se aplicam. Adaptaremos sua rotina.", step2_title:"Contraindicações", step2_sub:"É importante para a sua segurança.", step3_title:"Tudo pronto!", step3_sub:"Criaremos sua rotina personalizada baseada no método NeoRejuvenation.", step3_disclaimer:"Esta informação é educacional. Consulte sempre um profissional de saúde.", btn_back:"Voltar", btn_continue:"Continuar", btn_create:"Criar minha rotina", gen_title:"Criando sua rotina personalizada", gen_sub:"Estamos analisando seus objetivos e projetando a combinação ideal", ai_label:"Sua rotina personalizada", today_header:"Sua rotina de hoje", streak_label:"dias seguidos", complete_title:"Rotina concluída!", complete_sub:"Você completou todos os seus suplementos hoje.", progress_title:"Seu progresso", progress_sub:"Últimos 30 dias", streak_card_label:"Sequência ativa", streak_days:"dias consecutivos", record_label:"Recorde", record_days:"dias", last7:"Últimos 7 dias", weekly_avg:"Méd.", routine_title:"Sua rotina atual", total_supps:"suplementos no total", settings_title:"Configurações", reminders_title:"Lembretes", notif_btn:"Ativar notificações", notif_granted:"Notificações ativadas", notif_hint:"Os lembretes funcionam enquanto esta página estiver aberta.", routine_section:"Rotina", regenerate_hint:"Quer ajustar seus objetivos ou regenerar sua rotina?", regenerate_btn:"Criar nova rotina", reminder_prefix:"Lembrete", fallback_msg:"Sua rotina base NeoRejuvenation está pronta. Vitamina C + Reishi são os pilares fundamentais.", fallback_warning:"Consulte um médico antes de iniciar qualquer suplementação.", compact_label:"Modo compacto", compact_hint:"Oculta os benefícios para ver mais suplementos de relance", viewing_past:"Vendo dia passado", back_to_today:"Voltar para hoje", swipe_hint:"Deslize ← → para mudar de dia", milestone_cta:"Continuar", day_names:["D","S","T","Q","Q","S","S"], date_locale:"pt-BR" },
-  it: { trackerSub:"Supplement Tracker", today_label:"oggi", tab_today:"Oggi", tab_progress:"Progressi", tab_settings:"Impostazioni", morning:"Mattina", afternoon:"Pomeriggio", night:"Notte", morning_hint:"Al risveglio · Con la colazione", afternoon_hint:"Mezzogiorno · Con il pranzo", night_hint:"Prima di dormire · Con la cena", morning_notif:"Mattina", afternoon_notif:"Pomeriggio", night_notif:"Notte", freq_alternate:"Ogni 2-3 giorni", freq_weekly:"2-3×/settimana", hide_info:"Nascondi", more_info:"Più info", step1_title:"Quali sono i tuoi obiettivi?", step1_sub:"Seleziona tutto ciò che si applica. Adatteremo la tua routine.", step2_title:"Controindicazioni", step2_sub:"È importante per la tua sicurezza.", step3_title:"Tutto pronto!", step3_sub:"Creeremo la tua routine personalizzata basata sul metodo NeoRejuvenation.", step3_disclaimer:"Queste informazioni sono educative. Consulta sempre un professionista sanitario.", btn_back:"Indietro", btn_continue:"Continua", btn_create:"Crea la mia routine", gen_title:"Creazione della tua routine", gen_sub:"Stiamo analizzando i tuoi obiettivi e progettando la combinazione ottimale", ai_label:"La tua routine personalizzata", today_header:"La tua routine di oggi", streak_label:"giorni di seguito", complete_title:"Routine completata!", complete_sub:"Hai completato tutti i tuoi integratori di oggi.", progress_title:"I tuoi progressi", progress_sub:"Ultimi 30 giorni", streak_card_label:"Serie attiva", streak_days:"giorni consecutivi", record_label:"Record", record_days:"giorni", last7:"Ultimi 7 giorni", weekly_avg:"Media", routine_title:"La tua routine attuale", total_supps:"integratori in totale", settings_title:"Impostazioni", reminders_title:"Promemoria", notif_btn:"Attiva notifiche", notif_granted:"Notifiche attivate", notif_hint:"I promemoria funzionano finché questa pagina è aperta.", routine_section:"Routine", regenerate_hint:"Vuoi modificare i tuoi obiettivi o rigenerare la tua routine?", regenerate_btn:"Crea nuova routine", reminder_prefix:"Promemoria", fallback_msg:"La tua routine base NeoRejuvenation è pronta. Vitamina C + Reishi sono i pilastri fondamentali.", fallback_warning:"Consulta un medico prima di iniziare qualsiasi integrazione.", compact_label:"Modalità compatta", compact_hint:"Nascondi i benefici per vedere più integratori a colpo d'occhio", viewing_past:"Visualizzazione giorno passato", back_to_today:"Torna a oggi", swipe_hint:"Scorri ← → per cambiare giorno", milestone_cta:"Continua", day_names:["Do","Lu","Ma","Me","Gi","Ve","Sa"], date_locale:"it-IT" },
-  ea: { trackerSub:"متتبع المكملات", today_label:"اليوم", tab_today:"اليوم", tab_progress:"التقدم", tab_settings:"الإعدادات", morning:"الصباح", afternoon:"الظهيرة", night:"الليل", morning_hint:"عند الاستيقاظ · مع الإفطار", afternoon_hint:"الظهر · مع الغداء", night_hint:"قبل النوم · مع العشاء", morning_notif:"الصباح", afternoon_notif:"الظهيرة", night_notif:"الليل", freq_alternate:"كل 2-3 أيام", freq_weekly:"2-3 مرات/أسبوع", hide_info:"إخفاء", more_info:"المزيد", step1_title:"ما هي أهدافك؟", step1_sub:"اختر كل ما ينطبق. سنكيّف روتينك.", step2_title:"موانع الاستعمال", step2_sub:"هذا مهم لسلامتك. كن صادقًا.", step3_title:"كل شيء جاهز!", step3_sub:"سننشئ روتينك الشخصي بناءً على منهج NeoRejuvenation.", step3_disclaimer:"هذه المعلومات تعليمية. استشر دائمًا أخصائيًا صحيًا قبل البدء بأي مكملات.", btn_back:"رجوع", btn_continue:"متابعة", btn_create:"إنشاء روتيني", gen_title:"نقوم بإنشاء روتينك الشخصي", gen_sub:"نحلل أهدافك ونصمم التركيبة المثلى من مكملات NeoRejuvenation", ai_label:"روتينك الشخصي", today_header:"روتينك اليوم", streak_label:"أيام متتالية", complete_title:"اكتمل الروتين!", complete_sub:"لقد أكملت كل مكملاتك اليوم. جسدك يشكرك.", progress_title:"تقدمك", progress_sub:"آخر 30 يومًا", streak_card_label:"السلسلة النشطة", streak_days:"أيام متتالية", record_label:"الرقم القياسي", record_days:"أيام", last7:"آخر 7 أيام", weekly_avg:"المتوسط", routine_title:"روتينك الحالي", total_supps:"مكمل إجمالاً", settings_title:"الإعدادات", reminders_title:"التذكيرات", notif_btn:"تفعيل الإشعارات", notif_granted:"الإشعارات مفعّلة", notif_hint:"تعمل التذكيرات طالما هذه الصفحة مفتوحة.", routine_section:"الروتين", regenerate_hint:"هل تريد تعديل أهدافك أو إعادة إنشاء روتينك؟", regenerate_btn:"إنشاء روتين جديد", reminder_prefix:"تذكير", fallback_msg:"روتين NeoRejuvenation الأساسي جاهز. فيتامين C والريشي هما الركيزتان الأساسيتان لتجديد خلاياك يوميًا.", fallback_warning:"استشر طبيبك قبل البدء بأي مكملات.", compact_label:"الوضع المضغوط", compact_hint:"إخفاء الفوائد لرؤية المزيد من المكملات بلمحة", viewing_past:"عرض يوم سابق", back_to_today:"العودة إلى اليوم", swipe_hint:"اسحب ← → لتغيير اليوم", milestone_cta:"متابعة", day_names:["ح","ن","ث","ر","خ","ج","س"], date_locale:"ar-AE" }
-};
-
-/* ───────────────── NOTIFICATION GATE TRANSLATIONS ───────────────── */
-const NOTIF_GATE = {
-  es: { title:"Activa las notificaciones", body:"Para usar el Supplement Tracker necesitas activar las notificaciones. Así podremos recordarte tomar tus suplementos en los momentos correctos del día — esencial para mantener tu rutina de regeneración celular.", btn:"Activar notificaciones", denied_title:"Notificaciones bloqueadas", denied_body:"Las notificaciones están bloqueadas en tu navegador. Para usar el Supplement Tracker, actívalas manualmente: haz clic en el candado junto a la URL y cambia 'Notificaciones' a 'Permitir', luego recarga esta página.", retry:"Ya las he activado", unsupported_title:"Navegador no compatible", unsupported_body:"Tu navegador no soporta notificaciones web. Si estás en iPhone, instala la app desde Safari en 'Añadir a pantalla de inicio'.", unsupported_continue:"Continuar sin notificaciones" },
-  en: { title:"Enable notifications", body:"To use the Supplement Tracker you need to enable notifications. This way we can remind you to take your supplements at the right times of the day — essential to maintain your cellular regeneration routine.", btn:"Enable notifications", denied_title:"Notifications blocked", denied_body:"Notifications are blocked in your browser. To use the Supplement Tracker, enable them manually: click the lock icon next to the URL and change 'Notifications' to 'Allow', then reload this page.", retry:"I've enabled them", unsupported_title:"Browser not supported", unsupported_body:"Your browser doesn't support web notifications. If you're on iPhone, install the app from Safari via 'Add to Home Screen'.", unsupported_continue:"Continue without notifications" },
-  fr: { title:"Activez les notifications", body:"Pour utiliser le Supplement Tracker, vous devez activer les notifications. Nous pourrons ainsi vous rappeler de prendre vos suppléments aux bons moments de la journée — essentiel pour maintenir votre routine de régénération cellulaire.", btn:"Activer les notifications", denied_title:"Notifications bloquées", denied_body:"Les notifications sont bloquées dans votre navigateur. Pour utiliser le Supplement Tracker, activez-les manuellement : cliquez sur l'icône de cadenas à côté de l'URL et changez 'Notifications' en 'Autoriser', puis rechargez cette page.", retry:"Je les ai activées", unsupported_title:"Navigateur non compatible", unsupported_body:"Votre navigateur ne prend pas en charge les notifications web. Si vous êtes sur iPhone, installez l'app depuis Safari via 'Sur l'écran d'accueil'.", unsupported_continue:"Continuer sans notifications" },
-  de: { title:"Benachrichtigungen aktivieren", body:"Um den Supplement Tracker zu nutzen, müssen Sie Benachrichtigungen aktivieren. So können wir Sie zu den richtigen Tageszeiten an die Einnahme Ihrer Supplemente erinnern — unerlässlich für Ihre Zellregenerationsroutine.", btn:"Benachrichtigungen aktivieren", denied_title:"Benachrichtigungen blockiert", denied_body:"Benachrichtigungen sind in Ihrem Browser blockiert. Um den Supplement Tracker zu nutzen, aktivieren Sie sie manuell: Klicken Sie auf das Schloss-Symbol neben der URL und ändern Sie 'Benachrichtigungen' auf 'Zulassen', dann laden Sie diese Seite neu.", retry:"Ich habe sie aktiviert", unsupported_title:"Browser nicht unterstützt", unsupported_body:"Ihr Browser unterstützt keine Web-Benachrichtigungen. Auf iPhone installieren Sie die App aus Safari über 'Zum Home-Bildschirm'.", unsupported_continue:"Ohne Benachrichtigungen fortfahren" },
-  pt: { title:"Ative as notificações", body:"Para usar o Supplement Tracker você precisa ativar as notificações. Assim podemos lembrá-lo de tomar seus suplementos nos momentos certos do dia — essencial para manter sua rotina de regeneração celular.", btn:"Ativar notificações", denied_title:"Notificações bloqueadas", denied_body:"As notificações estão bloqueadas no seu navegador. Para usar o Supplement Tracker, ative-as manualmente: clique no ícone de cadeado ao lado da URL e mude 'Notificações' para 'Permitir', depois recarregue esta página.", retry:"Já as ativei", unsupported_title:"Navegador não compatível", unsupported_body:"Seu navegador não suporta notificações web. Se você está no iPhone, instale o app pelo Safari em 'Adicionar à Tela de Início'.", unsupported_continue:"Continuar sem notificações" },
-  it: { title:"Attiva le notifiche", body:"Per usare il Supplement Tracker devi attivare le notifiche. Così potremo ricordarti di prendere i tuoi integratori nei momenti giusti della giornata — essenziale per mantenere la tua routine di rigenerazione cellulare.", btn:"Attiva le notifiche", denied_title:"Notifiche bloccate", denied_body:"Le notifiche sono bloccate nel tuo browser. Per usare il Supplement Tracker, attivale manualmente: fai clic sull'icona del lucchetto accanto all'URL e cambia 'Notifiche' in 'Consenti', poi ricarica questa pagina.", retry:"Le ho attivate", unsupported_title:"Browser non compatibile", unsupported_body:"Il tuo browser non supporta le notifiche web. Se sei su iPhone, installa l'app da Safari tramite 'Aggiungi a Home'.", unsupported_continue:"Continua senza notifiche" },
-  ea: { title:"تفعيل الإشعارات", body:"لاستخدام Supplement Tracker، يجب تفعيل الإشعارات. بهذه الطريقة يمكننا تذكيرك بتناول مكملاتك في الأوقات الصحيحة من اليوم — أمر ضروري للحفاظ على روتين تجديد خلاياك.", btn:"تفعيل الإشعارات", denied_title:"الإشعارات محظورة", denied_body:"الإشعارات محظورة في متصفحك. لاستخدام Supplement Tracker، قم بتفعيلها يدويًا: انقر على أيقونة القفل بجانب الرابط وغيّر 'الإشعارات' إلى 'السماح'، ثم أعد تحميل هذه الصفحة.", retry:"لقد قمت بتفعيلها", unsupported_title:"المتصفح غير مدعوم", unsupported_body:"متصفحك لا يدعم إشعارات الويب. إذا كنت تستخدم iPhone، ثبّت التطبيق من Safari عبر 'أضف إلى الشاشة الرئيسية'.", unsupported_continue:"المتابعة بدون إشعارات" }
+  es: { trackerSub:"Supplement Tracker", today_label:"hoy", tab_today:"Hoy", tab_progress:"Progreso", tab_settings:"Ajustes", morning:"Mañana", afternoon:"Tarde", night:"Noche", morning_hint:"Al despertar · Con desayuno", afternoon_hint:"Mediodía · Con comida", night_hint:"Antes de dormir · Con cena", morning_notif:"Mañana", afternoon_notif:"Tarde", night_notif:"Noche", freq_alternate:"Cada 2-3 días", freq_weekly:"2-3×/semana", hide_info:"Ocultar", more_info:"Más info", step1_title:"¿Cuáles son tus objetivos?", step1_sub:"Selecciona todos los que apliquen. Adaptaremos tu rutina.", step2_title:"Contraindicaciones", step2_sub:"Es importante para tu seguridad. Sé honesto/a.", step3_title:"¡Todo listo!", step3_sub:"Crearemos tu rutina personalizada basada en el método NeoRejuvenation.", step3_disclaimer:"Esta información es educativa. Consulta siempre con un profesional sanitario antes de iniciar cualquier suplementación.", btn_back:"Atrás", btn_continue:"Continuar", btn_create:"Crear mi rutina", gen_title:"Creando tu rutina personalizada", gen_sub:"Estamos analizando tus objetivos y diseñando la combinación óptima de suplementos NeoRejuvenation", ai_label:"Tu rutina personalizada", today_header:"Tu rutina de hoy", streak_label:"días en racha", complete_title:"¡Rutina completada!", complete_sub:"Has completado todos tus suplementos de hoy. Tu cuerpo te lo agradece.", progress_title:"Tu progreso", progress_sub:"Últimos 30 días", streak_card_label:"Racha activa", streak_days:"días consecutivos", record_label:"Récord", record_days:"días", last7:"Últimos 7 días", weekly_avg:"Prom.", routine_title:"Tu rutina actual", total_supps:"suplementos en total", settings_title:"Ajustes", reminders_title:"Recordatorios", notif_granted:"Notificaciones activadas", notif_hint:"Los recordatorios funcionan mientras tengas esta página abierta.", routine_section:"Rutina", regenerate_hint:"¿Quieres ajustar tus objetivos o regenerar tu rutina?", regenerate_btn:"Crear nueva rutina", reminder_prefix:"Recordatorio", fallback_msg:"Tu rutina base NeoRejuvenation está lista. Vitamina C + Reishi son los pilares fundamentales de tu regeneración celular diaria.", fallback_warning:"Consulta con un médico antes de iniciar cualquier suplementación.", compact_label:"Modo compacto", compact_hint:"Oculta los beneficios para ver más suplementos de un vistazo", viewing_past:"Viendo día pasado", back_to_today:"Volver a hoy", swipe_hint:"Desliza ← → para cambiar de día", milestone_cta:"Continuar", day_names:["D","L","M","X","J","V","S"], date_locale:"es-ES" },
+  en: { trackerSub:"Supplement Tracker", today_label:"today", tab_today:"Today", tab_progress:"Progress", tab_settings:"Settings", morning:"Morning", afternoon:"Afternoon", night:"Night", morning_hint:"Upon waking · With breakfast", afternoon_hint:"Midday · With lunch", night_hint:"Before sleep · With dinner", morning_notif:"Morning", afternoon_notif:"Afternoon", night_notif:"Night", freq_alternate:"Every 2-3 days", freq_weekly:"2-3×/week", hide_info:"Hide", more_info:"More info", step1_title:"What are your goals?", step1_sub:"Select all that apply. We'll adapt your routine.", step2_title:"Contraindications", step2_sub:"This is important for your safety. Please be honest.", step3_title:"All set!", step3_sub:"We'll create your personalized routine based on the NeoRejuvenation method.", step3_disclaimer:"This information is educational. Always consult a healthcare professional before starting any supplementation.", btn_back:"Back", btn_continue:"Continue", btn_create:"Create my routine", gen_title:"Creating your personalized routine", gen_sub:"We're analyzing your goals and designing the optimal NeoRejuvenation supplement combination", ai_label:"Your personalized routine", today_header:"Your routine today", streak_label:"day streak", complete_title:"Routine complete!", complete_sub:"You have completed all your supplements for today. Your body thanks you.", progress_title:"Your progress", progress_sub:"Last 30 days", streak_card_label:"Active streak", streak_days:"consecutive days", record_label:"Record", record_days:"days", last7:"Last 7 days", weekly_avg:"Avg.", routine_title:"Your current routine", total_supps:"supplements total", settings_title:"Settings", reminders_title:"Reminders", notif_granted:"Notifications enabled", notif_hint:"Reminders work while this page is open.", routine_section:"Routine", regenerate_hint:"Want to adjust your goals or regenerate your routine?", regenerate_btn:"Create new routine", reminder_prefix:"Reminder", fallback_msg:"Your base NeoRejuvenation routine is ready. Vitamin C + Reishi are the fundamental pillars of your daily cellular regeneration.", fallback_warning:"Consult a doctor before starting any supplementation.", compact_label:"Compact mode", compact_hint:"Hide benefits to see more supplements at a glance", viewing_past:"Viewing past day", back_to_today:"Back to today", swipe_hint:"Swipe ← → to change day", milestone_cta:"Continue", day_names:["Su","Mo","Tu","We","Th","Fr","Sa"], date_locale:"en-US" },
+  fr: { trackerSub:"Supplement Tracker", today_label:"aujourd'hui", tab_today:"Aujourd'hui", tab_progress:"Progrès", tab_settings:"Réglages", morning:"Matin", afternoon:"Après-midi", night:"Nuit", morning_hint:"Au réveil · Avec le petit-déjeuner", afternoon_hint:"Midi · Avec le déjeuner", night_hint:"Avant de dormir · Avec le dîner", morning_notif:"Matin", afternoon_notif:"Après-midi", night_notif:"Nuit", freq_alternate:"Tous les 2-3 jours", freq_weekly:"2-3×/semaine", hide_info:"Masquer", more_info:"Plus d'infos", step1_title:"Quels sont vos objectifs ?", step1_sub:"Sélectionnez tout ce qui s'applique. Nous adapterons votre routine.", step2_title:"Contre-indications", step2_sub:"C'est important pour votre sécurité. Soyez honnête.", step3_title:"Tout est prêt !", step3_sub:"Nous créerons votre routine personnalisée basée sur la méthode NeoRejuvenation.", step3_disclaimer:"Ces informations sont éducatives. Consultez toujours un professionnel de santé.", btn_back:"Retour", btn_continue:"Continuer", btn_create:"Créer ma routine", gen_title:"Création de votre routine", gen_sub:"Nous analysons vos objectifs et conçoit la combinaison optimale", ai_label:"Votre routine personnalisée", today_header:"Votre routine du jour", streak_label:"jours de suite", complete_title:"Routine complète !", complete_sub:"Vous avez pris tous vos suppléments aujourd'hui. Votre corps vous remercie.", progress_title:"Votre progrès", progress_sub:"30 derniers jours", streak_card_label:"Série active", streak_days:"jours consécutifs", record_label:"Record", record_days:"jours", last7:"7 derniers jours", weekly_avg:"Moy.", routine_title:"Votre routine actuelle", total_supps:"suppléments au total", settings_title:"Réglages", reminders_title:"Rappels", notif_granted:"Notifications activées", notif_hint:"Les rappels fonctionnent tant que cette page est ouverte.", routine_section:"Routine", regenerate_hint:"Voulez-vous ajuster vos objectifs ou régénérer votre routine ?", regenerate_btn:"Créer une nouvelle routine", reminder_prefix:"Rappel", fallback_msg:"Votre routine NeoRejuvenation de base est prête. Vitamine C + Reishi sont les piliers fondamentaux.", fallback_warning:"Consultez un médecin avant de commencer toute supplémentation.", compact_label:"Mode compact", compact_hint:"Masquer les bénéfices pour voir plus de suppléments d'un coup d'œil", viewing_past:"Visualisation d'un jour passé", back_to_today:"Retour à aujourd'hui", swipe_hint:"Glissez ← → pour changer de jour", milestone_cta:"Continuer", day_names:["Di","Lu","Ma","Me","Je","Ve","Sa"], date_locale:"fr-FR" },
+  de: { trackerSub:"Supplement Tracker", today_label:"heute", tab_today:"Heute", tab_progress:"Fortschritt", tab_settings:"Einstellungen", morning:"Morgen", afternoon:"Nachmittag", night:"Nacht", morning_hint:"Beim Aufwachen · Mit dem Frühstück", afternoon_hint:"Mittags · Mit dem Mittagessen", night_hint:"Vor dem Schlafen · Mit dem Abendessen", morning_notif:"Morgen", afternoon_notif:"Nachmittag", night_notif:"Nacht", freq_alternate:"Alle 2-3 Tage", freq_weekly:"2-3×/Woche", hide_info:"Weniger", more_info:"Mehr Info", step1_title:"Was sind Ihre Ziele?", step1_sub:"Wählen Sie alles Zutreffende. Wir passen Ihre Routine an.", step2_title:"Kontraindikationen", step2_sub:"Dies ist wichtig für Ihre Sicherheit.", step3_title:"Alles bereit!", step3_sub:"Wir erstellen Ihre personalisierte Routine basierend auf der NeoRejuvenation-Methode.", step3_disclaimer:"Diese Informationen sind pädagogisch. Konsultieren Sie immer einen Arzt.", btn_back:"Zurück", btn_continue:"Weiter", btn_create:"Meine Routine erstellen", gen_title:"Ihre Routine wird erstellt", gen_sub:"Wir analysieren Ihre Ziele und entwirft die optimale Supplementkombination", ai_label:"Ihre personalisierte Routine", today_header:"Ihre Routine heute", streak_label:"Tage in Folge", complete_title:"Routine abgeschlossen!", complete_sub:"Sie haben alle heutigen Supplemente eingenommen.", progress_title:"Ihr Fortschritt", progress_sub:"Letzte 30 Tage", streak_card_label:"Aktive Serie", streak_days:"aufeinanderfolgende Tage", record_label:"Rekord", record_days:"Tage", last7:"Letzte 7 Tage", weekly_avg:"Ø", routine_title:"Ihre aktuelle Routine", total_supps:"Supplemente insgesamt", settings_title:"Einstellungen", reminders_title:"Erinnerungen", notif_granted:"Benachrichtigungen aktiviert", notif_hint:"Erinnerungen funktionieren solange diese Seite geöffnet ist.", routine_section:"Routine", regenerate_hint:"Möchten Sie Ihre Ziele anpassen oder Ihre Routine neu generieren?", regenerate_btn:"Neue Routine erstellen", reminder_prefix:"Erinnerung", fallback_msg:"Ihre NeoRejuvenation-Basisroutine ist bereit. Vitamin C + Reishi sind die grundlegenden Säulen.", fallback_warning:"Konsultieren Sie einen Arzt.", compact_label:"Kompakter Modus", compact_hint:"Vorteile ausblenden, um mehr Supplemente auf einen Blick zu sehen", viewing_past:"Vergangener Tag", back_to_today:"Zurück zu heute", swipe_hint:"Wischen ← → um den Tag zu wechseln", milestone_cta:"Weiter", day_names:["So","Mo","Di","Mi","Do","Fr","Sa"], date_locale:"de-DE" },
+  pt: { trackerSub:"Supplement Tracker", today_label:"hoje", tab_today:"Hoje", tab_progress:"Progresso", tab_settings:"Configurações", morning:"Manhã", afternoon:"Tarde", night:"Noite", morning_hint:"Ao acordar · Com o café da manhã", afternoon_hint:"Ao meio-dia · Com o almoço", night_hint:"Antes de dormir · Com o jantar", morning_notif:"Manhã", afternoon_notif:"Tarde", night_notif:"Noite", freq_alternate:"A cada 2-3 dias", freq_weekly:"2-3×/semana", hide_info:"Ocultar", more_info:"Mais info", step1_title:"Quais são os seus objetivos?", step1_sub:"Selecione todos os que se aplicam. Adaptaremos sua rotina.", step2_title:"Contraindicações", step2_sub:"É importante para a sua segurança.", step3_title:"Tudo pronto!", step3_sub:"Criaremos sua rotina personalizada baseada no método NeoRejuvenation.", step3_disclaimer:"Esta informação é educacional. Consulte sempre um profissional de saúde.", btn_back:"Voltar", btn_continue:"Continuar", btn_create:"Criar minha rotina", gen_title:"Criando sua rotina personalizada", gen_sub:"Estamos analisando seus objetivos e projetando a combinação ideal", ai_label:"Sua rotina personalizada", today_header:"Sua rotina de hoje", streak_label:"dias seguidos", complete_title:"Rotina concluída!", complete_sub:"Você completou todos os seus suplementos hoje.", progress_title:"Seu progresso", progress_sub:"Últimos 30 dias", streak_card_label:"Sequência ativa", streak_days:"dias consecutivos", record_label:"Recorde", record_days:"dias", last7:"Últimos 7 dias", weekly_avg:"Méd.", routine_title:"Sua rotina atual", total_supps:"suplementos no total", settings_title:"Configurações", reminders_title:"Lembretes", notif_granted:"Notificações ativadas", notif_hint:"Os lembretes funcionam enquanto esta página estiver aberta.", routine_section:"Rotina", regenerate_hint:"Quer ajustar seus objetivos ou regenerar sua rotina?", regenerate_btn:"Criar nova rotina", reminder_prefix:"Lembrete", fallback_msg:"Sua rotina base NeoRejuvenation está pronta. Vitamina C + Reishi são os pilares fundamentais.", fallback_warning:"Consulte um médico antes de iniciar qualquer suplementação.", compact_label:"Modo compacto", compact_hint:"Oculta os benefícios para ver mais suplementos de relance", viewing_past:"Vendo dia passado", back_to_today:"Voltar para hoje", swipe_hint:"Deslize ← → para mudar de dia", milestone_cta:"Continuar", day_names:["D","S","T","Q","Q","S","S"], date_locale:"pt-BR" },
+  it: { trackerSub:"Supplement Tracker", today_label:"oggi", tab_today:"Oggi", tab_progress:"Progressi", tab_settings:"Impostazioni", morning:"Mattina", afternoon:"Pomeriggio", night:"Notte", morning_hint:"Al risveglio · Con la colazione", afternoon_hint:"Mezzogiorno · Con il pranzo", night_hint:"Prima di dormire · Con la cena", morning_notif:"Mattina", afternoon_notif:"Pomeriggio", night_notif:"Notte", freq_alternate:"Ogni 2-3 giorni", freq_weekly:"2-3×/settimana", hide_info:"Nascondi", more_info:"Più info", step1_title:"Quali sono i tuoi obiettivi?", step1_sub:"Seleziona tutto ciò che si applica. Adatteremo la tua routine.", step2_title:"Controindicazioni", step2_sub:"È importante per la tua sicurezza.", step3_title:"Tutto pronto!", step3_sub:"Creeremo la tua routine personalizzata basata sul metodo NeoRejuvenation.", step3_disclaimer:"Queste informazioni sono educative. Consulta sempre un professionista sanitario.", btn_back:"Indietro", btn_continue:"Continua", btn_create:"Crea la mia routine", gen_title:"Creazione della tua routine", gen_sub:"Stiamo analizzando i tuoi obiettivi e progettando la combinazione ottimale", ai_label:"La tua routine personalizzata", today_header:"La tua routine di oggi", streak_label:"giorni di seguito", complete_title:"Routine completata!", complete_sub:"Hai completato tutti i tuoi integratori di oggi.", progress_title:"I tuoi progressi", progress_sub:"Ultimi 30 giorni", streak_card_label:"Serie attiva", streak_days:"giorni consecutivi", record_label:"Record", record_days:"giorni", last7:"Ultimi 7 giorni", weekly_avg:"Media", routine_title:"La tua routine attuale", total_supps:"integratori in totale", settings_title:"Impostazioni", reminders_title:"Promemoria", notif_granted:"Notifiche attivate", notif_hint:"I promemoria funzionano finché questa pagina è aperta.", routine_section:"Routine", regenerate_hint:"Vuoi modificare i tuoi obiettivi o rigenerare la tua routine?", regenerate_btn:"Crea nuova routine", reminder_prefix:"Promemoria", fallback_msg:"La tua routine base NeoRejuvenation è pronta. Vitamina C + Reishi sono i pilastri fondamentali.", fallback_warning:"Consulta un medico prima di iniziare qualsiasi integrazione.", compact_label:"Modalità compatta", compact_hint:"Nascondi i benefici per vedere più integratori a colpo d'occhio", viewing_past:"Visualizzazione giorno passato", back_to_today:"Torna a oggi", swipe_hint:"Scorri ← → per cambiare giorno", milestone_cta:"Continua", day_names:["Do","Lu","Ma","Me","Gi","Ve","Sa"], date_locale:"it-IT" },
+  ea: { trackerSub:"متتبع المكملات", today_label:"اليوم", tab_today:"اليوم", tab_progress:"التقدم", tab_settings:"الإعدادات", morning:"الصباح", afternoon:"الظهيرة", night:"الليل", morning_hint:"عند الاستيقاظ · مع الإفطار", afternoon_hint:"الظهر · مع الغداء", night_hint:"قبل النوم · مع العشاء", morning_notif:"الصباح", afternoon_notif:"الظهيرة", night_notif:"الليل", freq_alternate:"كل 2-3 أيام", freq_weekly:"2-3 مرات/أسبوع", hide_info:"إخفاء", more_info:"المزيد", step1_title:"ما هي أهدافك؟", step1_sub:"اختر كل ما ينطبق. سنكيّف روتينك.", step2_title:"موانع الاستعمال", step2_sub:"هذا مهم لسلامتك. كن صادقًا.", step3_title:"كل شيء جاهز!", step3_sub:"سننشئ روتينك الشخصي بناءً على منهج NeoRejuvenation.", step3_disclaimer:"هذه المعلومات تعليمية. استشر دائمًا أخصائيًا صحيًا قبل البدء بأي مكملات.", btn_back:"رجوع", btn_continue:"متابعة", btn_create:"إنشاء روتيني", gen_title:"نقوم بإنشاء روتينك الشخصي", gen_sub:"نحلل أهدافك ونصمم التركيبة المثلى من مكملات NeoRejuvenation", ai_label:"روتينك الشخصي", today_header:"روتينك اليوم", streak_label:"أيام متتالية", complete_title:"اكتمل الروتين!", complete_sub:"لقد أكملت كل مكملاتك اليوم. جسدك يشكرك.", progress_title:"تقدمك", progress_sub:"آخر 30 يومًا", streak_card_label:"السلسلة النشطة", streak_days:"أيام متتالية", record_label:"الرقم القياسي", record_days:"أيام", last7:"آخر 7 أيام", weekly_avg:"المتوسط", routine_title:"روتينك الحالي", total_supps:"مكمل إجمالاً", settings_title:"الإعدادات", reminders_title:"التذكيرات", notif_granted:"الإشعارات مفعّلة", notif_hint:"تعمل التذكيرات طالما هذه الصفحة مفتوحة.", routine_section:"الروتين", regenerate_hint:"هل تريد تعديل أهدافك أو إعادة إنشاء روتينك؟", regenerate_btn:"إنشاء روتين جديد", reminder_prefix:"تذكير", fallback_msg:"روتين NeoRejuvenation الأساسي جاهز. فيتامين C والريشي هما الركيزتان الأساسيتان لتجديد خلاياك يوميًا.", fallback_warning:"استشر طبيبك قبل البدء بأي مكملات.", compact_label:"الوضع المضغوط", compact_hint:"إخفاء الفوائد لرؤية المزيد من المكملات بلمحة", viewing_past:"عرض يوم سابق", back_to_today:"العودة إلى اليوم", swipe_hint:"اسحب ← → لتغيير اليوم", milestone_cta:"متابعة", day_names:["ح","ن","ث","ر","خ","ج","س"], date_locale:"ar-AE" }
 };
 
 /* ───────────────── EXTRA TRANSLATIONS (added in phase 2 features) ───────────────── */
 const EXTRA_T = {
-  es: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"¿Regenerar tu rutina?", regen_confirm_body:"Tu racha de {streak} días se mantendrá intacta. Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_body_nostreak:"Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_btn:"Sí, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota del día", note_placeholder:"Cómo te has sentido hoy (opcional)…", grace_day:"Día de gracia usado", none_excludes:"Al seleccionar \"ninguna\", las demás opciones se desactivan", push_test_btn:"Probar notificación", push_test_ok:"✓ Notificación enviada — debería llegar en unos segundos", push_test_no_sub:"Activa primero las notificaciones en este navegador", ios_install_title:"Instala la app para recibir notificaciones", ios_install_body:"En iPhone, las notificaciones solo funcionan con NeoRejuvenation instalada en tu pantalla de inicio. Son 3 pasos:", ios_install_step1:"Toca el botón Compartir en la barra inferior de Safari", ios_install_step2:"Busca y toca \"Añadir a pantalla de inicio\"", ios_install_step3:"Abre NeoRejuvenation desde el icono de tu pantalla de inicio", ios_install_note:"Importante: debes abrir siempre la app desde el icono del home, no desde Safari.", ios_install_cta:"Entendido", nav_tracker:"Suplementos", nav_scanner:"Escáner", nav_expert:"Experto" },
-  en: { mark_all:"Mark all", unmark_all:"Unmark all", regen_confirm_title:"Regenerate your routine?", regen_confirm_body:"Your {streak}-day streak will stay intact. A new routine will be generated based on updated goals.", regen_confirm_body_nostreak:"A new routine will be generated based on updated goals.", regen_confirm_btn:"Yes, regenerate", regen_cancel_btn:"Cancel", note_label:"Today's note", note_placeholder:"How have you felt today (optional)…", grace_day:"Grace day used", none_excludes:"Selecting \"none\" disables the other options", push_test_btn:"Test notification", push_test_ok:"✓ Notification sent — it should arrive in a few seconds", push_test_no_sub:"Enable notifications in this browser first", ios_install_title:"Install the app to receive notifications", ios_install_body:"On iPhone, notifications only work with NeoRejuvenation installed on your home screen. It takes 3 steps:", ios_install_step1:"Tap the Share button in Safari's bottom bar", ios_install_step2:"Find and tap \"Add to Home Screen\"", ios_install_step3:"Open NeoRejuvenation from the icon on your home screen", ios_install_note:"Important: always open the app from the home screen icon, not from Safari.", ios_install_cta:"Got it", nav_tracker:"Supplements", nav_scanner:"Scanner", nav_expert:"Expert" },
-  fr: { mark_all:"Tout marquer", unmark_all:"Tout démarquer", regen_confirm_title:"Régénérer votre routine ?", regen_confirm_body:"Votre série de {streak} jours restera intacte. Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_body_nostreak:"Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_btn:"Oui, régénérer", regen_cancel_btn:"Annuler", note_label:"Note du jour", note_placeholder:"Comment vous sentez-vous aujourd'hui (facultatif)…", grace_day:"Jour de grâce utilisé", none_excludes:"En sélectionnant « aucune », les autres options sont désactivées", push_test_btn:"Tester la notification", push_test_ok:"✓ Notification envoyée — elle devrait arriver dans quelques secondes", push_test_no_sub:"Activez d'abord les notifications dans ce navigateur", ios_install_title:"Installez l'app pour recevoir des notifications", ios_install_body:"Sur iPhone, les notifications ne fonctionnent qu'avec NeoRejuvenation installée sur votre écran d'accueil. Cela prend 3 étapes :", ios_install_step1:"Touchez le bouton Partager dans la barre inférieure de Safari", ios_install_step2:"Trouvez et touchez « Sur l'écran d'accueil »", ios_install_step3:"Ouvrez NeoRejuvenation depuis l'icône de votre écran d'accueil", ios_install_note:"Important : ouvrez toujours l'app depuis l'icône de l'écran d'accueil, pas depuis Safari.", ios_install_cta:"Compris", nav_tracker:"Suppléments", nav_scanner:"Scanner", nav_expert:"Expert" },
-  de: { mark_all:"Alle markieren", unmark_all:"Alle demarkieren", regen_confirm_title:"Ihre Routine neu generieren?", regen_confirm_body:"Ihre {streak}-Tage-Serie bleibt erhalten. Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_body_nostreak:"Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_btn:"Ja, neu generieren", regen_cancel_btn:"Abbrechen", note_label:"Tagesnotiz", note_placeholder:"Wie haben Sie sich heute gefühlt (optional)…", grace_day:"Kulanztag verwendet", none_excludes:"Bei Auswahl von „keine\" werden die anderen Optionen deaktiviert", push_test_btn:"Benachrichtigung testen", push_test_ok:"✓ Benachrichtigung gesendet — sie sollte in wenigen Sekunden ankommen", push_test_no_sub:"Aktivieren Sie zunächst die Benachrichtigungen in diesem Browser", ios_install_title:"Installieren Sie die App für Benachrichtigungen", ios_install_body:"Auf dem iPhone funktionieren Benachrichtigungen nur, wenn NeoRejuvenation auf Ihrem Home-Bildschirm installiert ist. Es sind 3 Schritte:", ios_install_step1:"Tippen Sie auf den Teilen-Button in der unteren Leiste von Safari", ios_install_step2:"Suchen und tippen Sie auf „Zum Home-Bildschirm“", ios_install_step3:"Öffnen Sie NeoRejuvenation über das Symbol auf Ihrem Home-Bildschirm", ios_install_note:"Wichtig: Öffnen Sie die App immer über das Symbol des Home-Bildschirms, nicht über Safari.", ios_install_cta:"Verstanden", nav_tracker:"Supplemente", nav_scanner:"Scanner", nav_expert:"Experte" },
-  pt: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"Regenerar sua rotina?", regen_confirm_body:"Sua sequência de {streak} dias permanecerá intacta. Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_body_nostreak:"Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_btn:"Sim, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota do dia", note_placeholder:"Como você se sentiu hoje (opcional)…", grace_day:"Dia de graça usado", none_excludes:"Ao selecionar \"nenhuma\", as outras opções ficam desativadas", push_test_btn:"Testar notificação", push_test_ok:"✓ Notificação enviada — deve chegar em alguns segundos", push_test_no_sub:"Ative primeiro as notificações neste navegador", ios_install_title:"Instale o app para receber notificações", ios_install_body:"No iPhone, as notificações só funcionam com NeoRejuvenation instalada na sua tela inicial. São 3 passos:", ios_install_step1:"Toque no botão Compartilhar na barra inferior do Safari", ios_install_step2:"Encontre e toque em \"Adicionar à Tela de Início\"", ios_install_step3:"Abra NeoRejuvenation pelo ícone na sua tela inicial", ios_install_note:"Importante: sempre abra o app pelo ícone da tela inicial, não pelo Safari.", ios_install_cta:"Entendi", nav_tracker:"Suplementos", nav_scanner:"Scanner", nav_expert:"Especialista" },
-  it: { mark_all:"Seleziona tutti", unmark_all:"Deseleziona tutti", regen_confirm_title:"Rigenerare la tua routine?", regen_confirm_body:"La tua serie di {streak} giorni rimarrà intatta. Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_body_nostreak:"Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_btn:"Sì, rigenera", regen_cancel_btn:"Annulla", note_label:"Nota del giorno", note_placeholder:"Come ti sei sentito oggi (facoltativo)…", grace_day:"Giorno di grazia usato", none_excludes:"Selezionando \"nessuna\", le altre opzioni vengono disattivate", push_test_btn:"Prova notifica", push_test_ok:"✓ Notifica inviata — dovrebbe arrivare in pochi secondi", push_test_no_sub:"Attiva prima le notifiche in questo browser", ios_install_title:"Installa l'app per ricevere le notifiche", ios_install_body:"Su iPhone, le notifiche funzionano solo con NeoRejuvenation installata nella tua schermata Home. Sono 3 passaggi:", ios_install_step1:"Tocca il pulsante Condividi nella barra inferiore di Safari", ios_install_step2:"Trova e tocca \"Aggiungi a Home\"", ios_install_step3:"Apri NeoRejuvenation dall'icona sulla tua schermata Home", ios_install_note:"Importante: apri sempre l'app dall'icona della schermata Home, non da Safari.", ios_install_cta:"Capito", nav_tracker:"Integratori", nav_scanner:"Scanner", nav_expert:"Esperto" },
-  ea: { mark_all:"تحديد الكل", unmark_all:"إلغاء التحديد", regen_confirm_title:"إعادة إنشاء روتينك؟", regen_confirm_body:"سلسلتك البالغة {streak} يومًا ستبقى سليمة. سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_body_nostreak:"سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_btn:"نعم، إعادة الإنشاء", regen_cancel_btn:"إلغاء", note_label:"ملاحظة اليوم", note_placeholder:"كيف شعرت اليوم (اختياري)…", grace_day:"تم استخدام يوم السماح", none_excludes:"عند اختيار \"لا شيء\"، يتم تعطيل الخيارات الأخرى", push_test_btn:"اختبر الإشعار", push_test_ok:"✓ تم إرسال الإشعار — يجب أن يصل خلال ثوانٍ", push_test_no_sub:"فعّل الإشعارات أولاً في هذا المتصفح", ios_install_title:"ثبّت التطبيق لتلقي الإشعارات", ios_install_body:"على iPhone، تعمل الإشعارات فقط عند تثبيت NeoRejuvenation على الشاشة الرئيسية. الأمر يتطلب 3 خطوات:", ios_install_step1:"اضغط على زر المشاركة في شريط Safari السفلي", ios_install_step2:"ابحث واضغط على \"إضافة إلى الشاشة الرئيسية\"", ios_install_step3:"افتح NeoRejuvenation من الأيقونة على شاشتك الرئيسية", ios_install_note:"مهم: افتح التطبيق دائمًا من أيقونة الشاشة الرئيسية، وليس من Safari.", ios_install_cta:"فهمت", nav_tracker:"المكملات", nav_scanner:"الماسح", nav_expert:"الخبير" }
+  es: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"¿Regenerar tu rutina?", regen_confirm_body:"Tu racha de {streak} días se mantendrá intacta. Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_body_nostreak:"Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_btn:"Sí, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota del día", note_placeholder:"Cómo te has sentido hoy (opcional)…", grace_day:"Día de gracia usado", none_excludes:"Al seleccionar \"ninguna\", las demás opciones se desactivan", push_test_btn:"Probar notificación", push_test_ok:"✓ Notificación enviada — debería llegar en unos segundos", push_test_no_sub:"Activa primero las notificaciones en este navegador", nav_tracker:"Suplementos", nav_scanner:"Escáner", nav_expert:"Experto" },
+  en: { mark_all:"Mark all", unmark_all:"Unmark all", regen_confirm_title:"Regenerate your routine?", regen_confirm_body:"Your {streak}-day streak will stay intact. A new routine will be generated based on updated goals.", regen_confirm_body_nostreak:"A new routine will be generated based on updated goals.", regen_confirm_btn:"Yes, regenerate", regen_cancel_btn:"Cancel", note_label:"Today's note", note_placeholder:"How have you felt today (optional)…", grace_day:"Grace day used", none_excludes:"Selecting \"none\" disables the other options", push_test_btn:"Test notification", push_test_ok:"✓ Notification sent — it should arrive in a few seconds", push_test_no_sub:"Enable notifications in this browser first", nav_tracker:"Supplements", nav_scanner:"Scanner", nav_expert:"Expert" },
+  fr: { mark_all:"Tout marquer", unmark_all:"Tout démarquer", regen_confirm_title:"Régénérer votre routine ?", regen_confirm_body:"Votre série de {streak} jours restera intacte. Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_body_nostreak:"Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_btn:"Oui, régénérer", regen_cancel_btn:"Annuler", note_label:"Note du jour", note_placeholder:"Comment vous sentez-vous aujourd'hui (facultatif)…", grace_day:"Jour de grâce utilisé", none_excludes:"En sélectionnant « aucune », les autres options sont désactivées", push_test_btn:"Tester la notification", push_test_ok:"✓ Notification envoyée — elle devrait arriver dans quelques secondes", push_test_no_sub:"Activez d'abord les notifications dans ce navigateur", nav_tracker:"Suppléments", nav_scanner:"Scanner", nav_expert:"Expert" },
+  de: { mark_all:"Alle markieren", unmark_all:"Alle demarkieren", regen_confirm_title:"Ihre Routine neu generieren?", regen_confirm_body:"Ihre {streak}-Tage-Serie bleibt erhalten. Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_body_nostreak:"Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_btn:"Ja, neu generieren", regen_cancel_btn:"Abbrechen", note_label:"Tagesnotiz", note_placeholder:"Wie haben Sie sich heute gefühlt (optional)…", grace_day:"Kulanztag verwendet", none_excludes:"Bei Auswahl von „keine\" werden die anderen Optionen deaktiviert", push_test_btn:"Benachrichtigung testen", push_test_ok:"✓ Benachrichtigung gesendet — sie sollte in wenigen Sekunden ankommen", push_test_no_sub:"Aktivieren Sie zunächst die Benachrichtigungen in diesem Browser", nav_tracker:"Supplemente", nav_scanner:"Scanner", nav_expert:"Experte" },
+  pt: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"Regenerar sua rotina?", regen_confirm_body:"Sua sequência de {streak} dias permanecerá intacta. Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_body_nostreak:"Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_btn:"Sim, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota do dia", note_placeholder:"Como você se sentiu hoje (opcional)…", grace_day:"Dia de graça usado", none_excludes:"Ao selecionar \"nenhuma\", as outras opções ficam desativadas", push_test_btn:"Testar notificação", push_test_ok:"✓ Notificação enviada — deve chegar em alguns segundos", push_test_no_sub:"Ative primeiro as notificações neste navegador", nav_tracker:"Suplementos", nav_scanner:"Scanner", nav_expert:"Especialista" },
+  it: { mark_all:"Seleziona tutti", unmark_all:"Deseleziona tutti", regen_confirm_title:"Rigenerare la tua routine?", regen_confirm_body:"La tua serie di {streak} giorni rimarrà intatta. Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_body_nostreak:"Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_btn:"Sì, rigenera", regen_cancel_btn:"Annulla", note_label:"Nota del giorno", note_placeholder:"Come ti sei sentito oggi (facoltativo)…", grace_day:"Giorno di grazia usato", none_excludes:"Selezionando \"nessuna\", le altre opzioni vengono disattivate", push_test_btn:"Prova notifica", push_test_ok:"✓ Notifica inviata — dovrebbe arrivare in pochi secondi", push_test_no_sub:"Attiva prima le notifiche in questo browser", nav_tracker:"Integratori", nav_scanner:"Scanner", nav_expert:"Esperto" },
+  ea: { mark_all:"تحديد الكل", unmark_all:"إلغاء التحديد", regen_confirm_title:"إعادة إنشاء روتينك؟", regen_confirm_body:"سلسلتك البالغة {streak} يومًا ستبقى سليمة. سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_body_nostreak:"سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_btn:"نعم، إعادة الإنشاء", regen_cancel_btn:"إلغاء", note_label:"ملاحظة اليوم", note_placeholder:"كيف شعرت اليوم (اختياري)…", grace_day:"تم استخدام يوم السماح", none_excludes:"عند اختيار \"لا شيء\"، يتم تعطيل الخيارات الأخرى", push_test_btn:"اختبر الإشعار", push_test_ok:"✓ تم إرسال الإشعار — يجب أن يصل خلال ثوانٍ", push_test_no_sub:"فعّل الإشعارات أولاً في هذا المتصفح", nav_tracker:"المكملات", nav_scanner:"الماسح", nav_expert:"الخبير" }
 };
 
 /* ───────────────── GOALS & CONTRAINDICATIONS ───────────────── */
@@ -857,115 +848,6 @@ function MilestoneModal({ days, lang, onClose, t }) {
   );
 }
 
-/* ───────────────── NOTIFICATION GATE ───────────────── */
-function NotificationGate({ lang, onGranted }) {
-  const g = NOTIF_GATE[lang] || NOTIF_GATE.es;
-  const [state, setState] = useState(() => {
-    if (typeof window === "undefined" || !("Notification" in window)) return "unsupported";
-    return Notification.permission;
-  });
-  const [loading, setLoading] = useState(false);
-
-  const request = async () => {
-    if (!("Notification" in window)) return;
-    setLoading(true);
-    try {
-      const p = await Notification.requestPermission();
-      setState(p);
-      if (p === "granted") {
-        haptic(20);
-        setTimeout(() => onGranted(), 400);
-      }
-    } catch {
-      setState("denied");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const recheck = () => {
-    if (!("Notification" in window)) return;
-    const p = Notification.permission;
-    setState(p);
-    if (p === "granted") onGranted();
-  };
-
-  const isUnsupported = state === "unsupported";
-  const isDenied = state === "denied";
-  const isDefault = state === "default";
-
-  const iconBg = isDenied ? C.warningBg : "linear-gradient(135deg,#fafefb,#e8f5ef)";
-  const iconColor = isDenied ? C.warning : C.brand1;
-
-  return (
-    <div style={{
-      display: "flex", flexDirection: "column", alignItems: "center",
-      justifyContent: "center", minHeight: "70vh", padding: "20px 16px",
-      textAlign: "center", animation: "fadeUp 0.4s"
-    }}>
-      <div style={{
-        width: 88, height: 88, borderRadius: "50%",
-        background: iconBg, border: `1px solid ${C.border}`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        marginBottom: 24, color: iconColor,
-        animation: isDefault ? "breathe 2.5s ease-in-out infinite" : "none"
-      }}>
-        <div style={{ transform: "scale(1.8)" }}>{Icon.bell(20)}</div>
-      </div>
-
-      <h2 style={{
-        fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 22,
-        color: C.text, marginBottom: 12, lineHeight: 1.2, maxWidth: 320
-      }}>
-        {isUnsupported ? g.unsupported_title : isDenied ? g.denied_title : g.title}
-      </h2>
-
-      <p style={{
-        fontSize: 13, color: C.textDim, lineHeight: 1.65,
-        maxWidth: 340, marginBottom: 28
-      }}>
-        {isUnsupported ? g.unsupported_body : isDenied ? g.denied_body : g.body}
-      </p>
-
-      {isDefault && (
-        <button onClick={request} disabled={loading} style={{
-          padding: "14px 32px", borderRadius: 12,
-          background: C.brandGrad, border: "none", color: "#fff",
-          fontFamily: "Oswald,sans-serif", fontWeight: 600, fontSize: 13,
-          letterSpacing: "0.04em", textTransform: "uppercase",
-          cursor: loading ? "wait" : "pointer",
-          display: "inline-flex", alignItems: "center", gap: 10,
-          opacity: loading ? 0.7 : 1, transition: "opacity 0.2s"
-        }}>
-          {Icon.bell(15)} {g.btn}
-        </button>
-      )}
-
-      {isDenied && (
-        <button onClick={recheck} style={{
-          padding: "14px 28px", borderRadius: 12,
-          background: "transparent", border: `1px solid ${C.borderStrong}`,
-          color: C.textDim, fontSize: 13, cursor: "pointer",
-          fontFamily: "Inter, sans-serif", fontWeight: 500
-        }}>
-          {g.retry}
-        </button>
-      )}
-
-      {isUnsupported && (
-        <button onClick={onGranted} style={{
-          padding: "14px 28px", borderRadius: 12,
-          background: "transparent", border: `1px solid ${C.borderStrong}`,
-          color: C.textDim, fontSize: 13, cursor: "pointer",
-          fontFamily: "Inter, sans-serif", fontWeight: 500
-        }}>
-          {g.unsupported_continue}
-        </button>
-      )}
-    </div>
-  );
-}
-
 /* ───────────────── REGEN CONFIRM MODAL ───────────────── */
 function RegenConfirmModal({ streak, t, onCancel, onConfirm }) {
   const body = streak > 0
@@ -1012,89 +894,6 @@ function RegenConfirmModal({ streak, t, onCancel, onConfirm }) {
             letterSpacing: "0.03em", cursor: "pointer"
           }}>{t.regen_confirm_btn}</button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-/* ───────────────── iOS INSTALL PWA MODAL ───────────────── */
-function IOSInstallPWAModal({ t, onClose }) {
-  return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(15,22,40,0.5)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 200, padding: 20, animation: "fadeIn 0.3s", backdropFilter: "blur(4px)"
-    }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: C.surface, borderRadius: 20, maxWidth: 400, width: "100%",
-        padding: "28px 24px 22px", animation: "modalIn 0.4s cubic-bezier(.2,.9,.3,1.2)",
-        border: `1px solid ${C.border}`, position: "relative", maxHeight: "90vh", overflowY: "auto"
-      }}>
-        <button onClick={onClose} aria-label="Close" style={{
-          position: "absolute", top: 14, right: 14, background: "transparent",
-          border: "none", color: C.textMuted, cursor: "pointer", padding: 6, borderRadius: 8, zIndex: 1
-        }}>{Icon.close(18)}</button>
-
-        <div style={{
-          width: 56, height: 56, borderRadius: "50%",
-          background: "#e8f5ef", border: `1px solid ${C.border}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          margin: "0 auto 18px", color: C.brand1
-        }}>
-          {Icon.bell(24)}
-        </div>
-
-        <h3 style={{
-          fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 19,
-          color: C.text, textAlign: "center", marginBottom: 10, lineHeight: 1.25
-        }}>{t.ios_install_title}</h3>
-
-        <p style={{
-          fontSize: 13, color: C.textDim, lineHeight: 1.6,
-          textAlign: "center", marginBottom: 22
-        }}>{t.ios_install_body}</p>
-
-        {/* 3 pasos visuales */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 22 }}>
-          {[
-            { n: 1, text: t.ios_install_step1, icon: "⬆️" },
-            { n: 2, text: t.ios_install_step2, icon: "➕" },
-            { n: 3, text: t.ios_install_step3, icon: "🏠" }
-          ].map(step => (
-            <div key={step.n} style={{
-              display: "flex", alignItems: "center", gap: 12,
-              padding: "12px 14px", background: C.bgSoft,
-              borderRadius: 12, border: `1px solid ${C.border}`
-            }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: "50%",
-                background: C.brandGrad, color: "#fff",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 13,
-                flexShrink: 0
-              }}>{step.n}</div>
-              <div style={{ flex: 1, fontSize: 12, color: C.textDim, lineHeight: 1.5 }}>
-                {step.text}
-              </div>
-              <div style={{ fontSize: 18, flexShrink: 0 }}>{step.icon}</div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{
-          padding: "10px 12px", background: C.warningBg,
-          border: `1px solid ${C.morning.border}`, borderRadius: 10,
-          fontSize: 11, color: C.warning, lineHeight: 1.5, marginBottom: 18
-        }}>
-          ⚠️ {t.ios_install_note}
-        </div>
-
-        <button onClick={onClose} style={{
-          width: "100%", padding: 13, borderRadius: 12,
-          background: C.brandGrad, border: "none", color: "#fff",
-          fontFamily: "Oswald,sans-serif", fontWeight: 600, fontSize: 13,
-          letterSpacing: "0.03em", cursor: "pointer"
-        }}>{t.ios_install_cta}</button>
       </div>
     </div>
   );
@@ -1395,7 +1194,7 @@ function ProgressView({ history, streak, record, routine, t }) {
 }
 
 /* ───────────────── SETTINGS VIEW ───────────────── */
-function SettingsView({ rems, onRem, onNotif, notifOk, onRegen, routine, compactManual, onCompactToggle, t, onPushTest }) {
+function SettingsView({ rems, onRem, subscribed, onRegen, routine, compactManual, onCompactToggle, t, onPushTest }) {
   const ps = [
     { id: "morning", c: C.morning },
     { id: "afternoon", c: C.afternoon },
@@ -1410,14 +1209,12 @@ function SettingsView({ rems, onRem, onNotif, notifOk, onRegen, routine, compact
         <div style={{ fontSize: 10, color: C.textMuted, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500, marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
           {Icon.bell(12)} {t.reminders_title}
         </div>
-        {!notifOk && (
-          <button onClick={onNotif} style={{
-            width: "100%", padding: 12, borderRadius: 12,
-            background: "#e8f5ef", border: `1px solid ${C.border}`,
-            color: C.brand1, fontSize: 13, cursor: "pointer", marginBottom: 14, fontWeight: 500
-          }}>{t.notif_btn}</button>
-        )}
-        {notifOk && (
+        {/* Estado informativo de suscripción neo-push. El permiso/suscripción
+            se gestiona en el GATE de /supplement/ (WordPress), aguas arriba —
+            el tracker ya no pide permiso. subscribed: true → activado + test;
+            false/null (bridge no disponible o estado desconocido) → no se
+            muestra nada (degradación elegante, nunca error ni spinner). */}
+        {subscribed === true && (
           <>
             <div style={{ padding: "8px 12px", background: C.successBg, borderRadius: 10, marginBottom: 10, fontSize: 12, color: C.success }}>
               ✓ {t.notif_granted}
@@ -1525,9 +1322,10 @@ export default function App() {
     night: { time: "21:00", enabled: true },
     tz: (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC"
   });
-  const [notif, setNotif] = useState(false);
-  const [notifState, setNotifState] = useState("default"); // "default" | "granted" | "denied" | "unsupported"
-  const [notifBypassed, setNotifBypassed] = useState(false); // for unsupported browsers
+  // Estado de suscripción neo-push (informativo). null = desconocido (bridge
+  // no disponible / aún sin responder), true/false = estado real vía el parent.
+  // El permiso/suscripción lo gobierna el GATE de /supplement/, aguas arriba.
+  const [subscribed, setSubscribed] = useState(null);
   const [aiMsg, setAiMsg] = useState(null);
   const [warns, setWarns] = useState([]);
   const [toast, setToast] = useState(null);
@@ -1537,7 +1335,6 @@ export default function App() {
   const [shownMilestones, setShownMilestones] = useState([]);
   const [onboardingDraft, setOnboardingDraft] = useState(null);
   const [showRegenConfirm, setShowRegenConfirm] = useState(false);
-  const [showIOSInstall, setShowIOSInstall] = useState(false);
   const [showRoutineInfo, setShowRoutineInfo] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -1562,45 +1359,6 @@ export default function App() {
     }
   }, []);
 
-/* Check notification permission on load */
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // PASO 1: Detectar iframe ANTES de mirar Notification API.
-    // Si estamos embebidos en WordPress (o cualquier parent cross-origin),
-    // bypaseamos el gate incondicionalmente. Esto cubre tanto navegadores
-    // que soportan Notification pero la bloquean en iframes, como iPhone
-    // Safari donde Notification ni siquiera existe fuera de PWA.
-    // Las push reales llegarán vía OneSignal desde el dominio padre (Fase 5).
-    let inIframe = false;
-    try {
-      inIframe = window.parent !== window;
-    } catch {
-      // cross-origin access error = estamos en un iframe foráneo
-      inIframe = true;
-    }
-
-    if (inIframe) {
-      setNotifBypassed(true);
-      // Aun así, si Notification existe, reflejamos el estado real
-      // por si en algún momento queremos mostrarlo en Ajustes.
-      if ("Notification" in window) {
-        setNotifState(Notification.permission);
-        setNotif(Notification.permission === "granted");
-      } else {
-        setNotifState("unsupported");
-      }
-      return;
-    }
-
-    // PASO 2: Standalone (no iframe). Aquí sí importa el soporte real.
-    if (!("Notification" in window)) {
-      setNotifState("unsupported");
-      return;
-    }
-    setNotifState(Notification.permission);
-    setNotif(Notification.permission === "granted");
-  }, []);
 
   /* Load persisted state — hidratación local inmediata + pull del bridge en background */
   useEffect(() => {
@@ -1649,6 +1407,11 @@ export default function App() {
           setHydrating(false);
           return;
         }
+
+        // 2b. Estado de suscripción neo-push para el badge informativo de Ajustes.
+        //     Fire-and-forget: no bloquea la hidratación y degrada a null si el
+        //     parent no responde (nunca error ni spinner).
+        bridge.isSubscribed().then(setSubscribed).catch(() => {});
 
         // 3. Pull del servidor. Si el servidor tiene algo más nuevo, lo aplicamos
         //    al estado React y al localStorage; si local es más nuevo, queda en
@@ -1783,14 +1546,16 @@ export default function App() {
         if (cfg.enabled && cfg.time === ts) {
           const periodLabels = { morning: t.morning_notif, afternoon: t.afternoon_notif, night: t.night_notif };
           const msg = `${t.reminder_prefix} ${periodLabels[p]}: ${(routine?.[p] || []).map(s => s.name).join(", ")}`;
-          if (notif && "Notification" in window) new Notification("NeoRejuvenation", { body: msg });
+          // Recordatorio local best-effort mientras la página está abierta.
+          // Los recordatorios reales llegan por neo-push (cron server-side).
+          if (subscribed === true && "Notification" in window) new Notification("NeoRejuvenation", { body: msg });
           setToast(msg);
           setTimeout(() => setToast(null), 6000);
         }
       });
     }, 30000);
     return () => clearInterval(reminderRef.current);
-  }, [appState, rems, routine, notif, t]);
+  }, [appState, rems, routine, subscribed, t]);
 
   /* Derived: current checks (today or past) */
   const currentChecks = isToday ? checks : (history[viewDate]?.checks || {});
@@ -1983,22 +1748,15 @@ const confirmRegen = () => {
     { id: "settings", l: t.tab_settings }
   ];
 
-  /* Notification gate: block dashboard until notifications are granted (or bypassed on unsupported) */
-  const needsNotifGate = appState === "dashboard" && notifState !== "granted" && !notifBypassed;
-
-  const handleNotifGranted = () => {
-    setNotifState("granted");
-    setNotif(true);
-    setNotifBypassed(true); // covers unsupported-browser bypass case
-  };
-
   const isRTL = lang === "ea";
   const bodyFont = isRTL
     ? "Almarai, -apple-system, BlinkMacSystemFont, sans-serif"
     : "Inter, -apple-system, BlinkMacSystemFont, sans-serif";
 
-  /* Unified bottom nav (tracker ↔ scanner ↔ expert) — solo en dashboard */
-  const showUnifiedNav = appState === "dashboard" && !needsNotifGate;
+  /* Unified bottom nav (tracker ↔ scanner ↔ expert) — solo en dashboard.
+     El permiso de notificaciones ya no bloquea el dashboard: lo garantiza el
+     GATE de /supplement/ (WordPress), aguas arriba del iframe. */
+  const showUnifiedNav = appState === "dashboard";
 
   const unifiedNavItems = [
     { id: "tracker", label: t.nav_tracker, icon: Icon.pill(15), active: true, onClick: () => {} },
@@ -2036,16 +1794,8 @@ const confirmRegen = () => {
         />
       )}
 
-      {/* iOS install PWA educational modal */}
-      {showIOSInstall && (
-        <IOSInstallPWAModal
-          t={t}
-          onClose={() => setShowIOSInstall(false)}
-        />
-      )}
-
-      {/* Top tabs (only in dashboard, hidden while notification gate is showing) */}
-      {appState === "dashboard" && !needsNotifGate && (
+      {/* Top tabs (only in dashboard) */}
+      {appState === "dashboard" && (
         <div style={{
           padding: "16px 20px 0",
           position: "sticky", top: 0, zIndex: 10,
@@ -2094,11 +1844,7 @@ const confirmRegen = () => {
 
         {appState === "generating" && <Generating t={t} />}
 
-        {appState === "dashboard" && needsNotifGate && (
-          <NotificationGate lang={lang} onGranted={handleNotifGranted} />
-        )}
-
-        {appState === "dashboard" && !needsNotifGate && routine && (
+        {appState === "dashboard" && routine && (
           <>
             {view === "today" && (
               <div
@@ -2304,70 +2050,7 @@ const confirmRegen = () => {
             {view === "settings" && (
               <SettingsView
                 rems={rems} onRem={remUpdate}
-                onNotif={async () => {
-                  // ── Detección de iOS sin PWA instalada ──
-                  // En iOS Safari, web push solo funciona con PWA en home screen.
-                  // Si detectamos iOS + no-standalone, mostramos modal educativo
-                  // en lugar de intentar pedir permiso (que fallaría silenciosamente).
-                  const ua = navigator.userAgent || "";
-                  const isIOS = /iPad|iPhone|iPod/.test(ua) ||
-                                (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-                  if (isIOS && bridge.isAvailable()) {
-                    // Preguntamos al parent si está en standalone (PWA instalada).
-                    // El parent responde con isStandalone en la misma respuesta de requestPushPermission.
-                    try {
-                      const res = await bridge.requestPushPermission();
-
-                      if (res.ok && res.permission === "granted") {
-                        setNotif(true);
-                        setNotifState("granted");
-                        setToast(t.notif_granted);
-                        setTimeout(() => setToast(null), 4000);
-                        return;
-                      }
-
-                      // Si el permiso no llegó a "granted" Y estamos en iOS, muy probable
-                      // que sea porque no está instalada la PWA. Mostrar modal educativo.
-                      setShowIOSInstall(true);
-                      return;
-                    } catch (e) {
-                      // Cualquier error en iOS → asumimos no-PWA y mostramos el modal
-                      setShowIOSInstall(true);
-                      return;
-                    }
-                  }
-
-                  // ── Caso general (Android, desktop, etc.) ──
-                  // Dentro del iframe de WordPress → delegar al parent vía bridge.
-                  if (bridge.isAvailable()) {
-                    try {
-                      const res = await bridge.requestPushPermission();
-                      if (res.ok && res.permission === "granted") {
-                        setNotif(true);
-                        setNotifState("granted");
-                        setToast(t.notif_granted);
-                        setTimeout(() => setToast(null), 4000);
-                      } else {
-                        setNotif(false);
-                      }
-                    } catch (e) {
-                      // Bridge falló → fallback al permission local si existe
-                      if ("Notification" in window) {
-                        const p = await Notification.requestPermission();
-                        setNotif(p === "granted");
-                      }
-                    }
-                    return;
-                  }
-
-                  // ── Caso standalone sin bridge (sin iframe) ──
-                  if ("Notification" in window) {
-                    const p = await Notification.requestPermission();
-                    setNotif(p === "granted");
-                  }
-                }}
-                notifOk={notif} onRegen={regen} routine={routine}
+                subscribed={subscribed} onRegen={regen} routine={routine}
                 compactManual={compactManual} onCompactToggle={toggleCompactManual}
                 onPushTest={async () => {
                   if (!bridge.isAvailable()) return;

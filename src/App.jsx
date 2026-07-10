@@ -389,6 +389,35 @@ const MILESTONE_MSG = {
 const MILESTONES = [7, 14, 30, 60, 100];
 
 /* ───────────────── PROMPT ───────────────── */
+/* ───────────────── FALLBACK ROUTINE (localizada) ─────────────────
+   Se usa cuando la generación con IA falla (límite diario, error de API,
+   JSON inválido o bridge no disponible). Antes estaba hardcodeada en
+   inglés y a usuarios no-EN les salía "Vitamin C / With breakfast". */
+const FALLBACK_T = {
+  es: { vc:"Vitamina C", b1:["Antioxidante","Colágeno","Inmunidad"], n1:"Con el desayuno.", b2:["Antienvejecimiento","Sistema inmune","Hígado"], n2:"Con la Vitamina C y comida.", b3:["Antioxidante","Regeneración"], n3:"Dosis de la noche.", b4:["Sueño","Antiestrés"], n4:"Regeneración nocturna." },
+  en: { vc:"Vitamin C", b1:["Antioxidant","Collagen","Immunity"], n1:"With breakfast.", b2:["Anti-aging","Immune","Liver"], n2:"With Vitamin C and food.", b3:["Antioxidant","Regeneration"], n3:"Evening dose.", b4:["Sleep","Anti-stress"], n4:"Night regeneration." },
+  fr: { vc:"Vitamine C", b1:["Antioxydant","Collagène","Immunité"], n1:"Avec le petit-déjeuner.", b2:["Anti-âge","Immunité","Foie"], n2:"Avec la Vitamine C et de la nourriture.", b3:["Antioxydant","Régénération"], n3:"Dose du soir.", b4:["Sommeil","Anti-stress"], n4:"Régénération nocturne." },
+  de: { vc:"Vitamin C", b1:["Antioxidans","Kollagen","Immunsystem"], n1:"Zum Frühstück.", b2:["Anti-Aging","Immunsystem","Leber"], n2:"Mit Vitamin C und Essen.", b3:["Antioxidans","Regeneration"], n3:"Abenddosis.", b4:["Schlaf","Anti-Stress"], n4:"Nächtliche Regeneration." },
+  it: { vc:"Vitamina C", b1:["Antiossidante","Collagene","Immunità"], n1:"Con la colazione.", b2:["Anti-età","Sistema immunitario","Fegato"], n2:"Con la Vitamina C e cibo.", b3:["Antiossidante","Rigenerazione"], n3:"Dose serale.", b4:["Sonno","Anti-stress"], n4:"Rigenerazione notturna." },
+  pt: { vc:"Vitamina C", b1:["Antioxidante","Colágeno","Imunidade"], n1:"Com o café da manhã.", b2:["Antienvelhecimento","Sistema imune","Fígado"], n2:"Com a Vitamina C e comida.", b3:["Antioxidante","Regeneração"], n3:"Dose da noite.", b4:["Sono","Antiestresse"], n4:"Regeneração noturna." },
+  ea: { vc:"فيتامين C", b1:["مضاد للأكسدة","الكولاجين","المناعة"], n1:"مع الفطور.", b2:["مكافحة الشيخوخة","المناعة","الكبد"], n2:"مع فيتامين C ومع الطعام.", b3:["مضاد للأكسدة","التجديد"], n3:"جرعة المساء.", b4:["النوم","مضاد للتوتر"], n4:"تجديد ليلي." }
+};
+
+const buildFallbackRoutine = (lang) => {
+  const f = FALLBACK_T[lang] || FALLBACK_T.es;
+  return {
+    morning: [
+      { id: "vc-am", name: f.vc, dose: "1000mg", brand: "SOLARAY 1000mg Retard", benefits: f.b1, notes: f.n1, frequency: "daily" },
+      { id: "rei-am", name: "Reishi", dose: "1500mg", brand: "Kinoko Reishi 1500mg", benefits: f.b2, notes: f.n2, frequency: "daily" }
+    ],
+    afternoon: [],
+    night: [
+      { id: "vc-pm", name: f.vc, dose: "1000mg", brand: "Solgar 500mg", benefits: f.b3, notes: f.n3, frequency: "daily" },
+      { id: "rei-pm", name: "Reishi", dose: "1500mg", brand: "Kinoko Reishi 1500mg", benefits: f.b4, notes: f.n4, frequency: "daily" }
+    ]
+  };
+};
+
 const buildPrompt = (lang) => {
   const ln = {es:"Spanish",en:"English",fr:"French",de:"German",pt:"Portuguese",it:"Italian",ea:"Arabic"}[lang]||"English";
   const native = {es:"español",en:"English",fr:"français",de:"Deutsch",pt:"português",it:"italiano",ea:"العربية"}[lang]||"English";
@@ -2034,6 +2063,33 @@ export default function App() {
             __nrSyncPending.history = localHistory;
             __nrSyncPending.history_ts = localHistoryTs;
           }
+
+          // reminders (fix: faltaba en el merge — si localStorage se vacía,
+          // p.ej. ITP de Safari en iframes cross-origin, las horas volvían a
+          // los defaults aunque el servidor tuviera las buenas)
+          const localRemsTs = getLocalTs("neo-reminders");
+          if (remote.reminders_ts > localRemsTs && remote.reminders) {
+            const rr = { ...remote.reminders };
+            const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
+            if (rr.tz !== currentTz) {
+              // La tz del dispositivo manda (el cron la necesita real):
+              // storage.set guarda local y repushea con ts nuevo
+              rr.tz = currentTz;
+              storage.set("neo-reminders", JSON.stringify(rr));
+            } else {
+              try { localStorage.setItem("neo-reminders", JSON.stringify(rr)); } catch {}
+              try { localStorage.setItem("neo-reminders-ts", String(remote.reminders_ts)); } catch {}
+            }
+            setRems(rr);
+          } else if (localRemsTs > remote.reminders_ts) {
+            try {
+              const cur = localStorage.getItem("neo-reminders");
+              if (cur) {
+                __nrSyncPending.reminders = JSON.parse(cur);
+                __nrSyncPending.reminders_ts = localRemsTs;
+              }
+            } catch { /* ignore */ }
+          }
         }
       } catch {
         // Si algo falla, al menos la app ya está hidratada localmente
@@ -2312,7 +2368,7 @@ const confirmRegen = () => {
       }
 
       const result = await bridge.generate({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 1500,
         system: buildPrompt(lang),
         messages: [{ role: "user", content: `Goals: ${goalList}. Contraindications: ${conds.join(", ")}. JSON only in ${ln}.` }]
@@ -2333,17 +2389,7 @@ const confirmRegen = () => {
       setAppState("dashboard");
     } catch {
       const fb = {
-        routine: {
-          morning: [
-            { id: "vc-am", name: "Vitamin C", dose: "1000mg", brand: "SOLARAY 1000mg Retard", benefits: ["Antioxidant", "Collagen", "Immunity"], notes: "With breakfast.", frequency: "daily" },
-            { id: "rei-am", name: "Reishi", dose: "1500mg", brand: "Kinoko Reishi 1500mg", benefits: ["Anti-aging", "Immune", "Liver"], notes: "With Vitamin C and food.", frequency: "daily" }
-          ],
-          afternoon: [],
-          night: [
-            { id: "vc-pm", name: "Vitamin C", dose: "1000mg", brand: "Solgar 500mg", benefits: ["Antioxidant", "Regeneration"], notes: "Evening dose.", frequency: "daily" },
-            { id: "rei-pm", name: "Reishi", dose: "1500mg", brand: "Kinoko Reishi 1500mg", benefits: ["Sleep", "Anti-stress"], notes: "Night regeneration.", frequency: "daily" }
-          ]
-        },
+        routine: buildFallbackRoutine(lang),
         personalMessage: t.fallback_msg,
         warnings: [t.fallback_warning]
       };

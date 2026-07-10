@@ -120,6 +120,7 @@ const bridge = (() => {
     suppProduct: (id)  => send("nrx-supp-product", { id }, 15000).then(r => r.data),
     suppScan:    (p)   => send("nrx-supp-scan", p, 120000).then(r => r.data),
     suppExpert:  (p)   => send("nrx-supp-expert", p, 90000).then(r => r.data),
+    suppDelScan: (id)  => send("nrx-supp-del", { id }, 15000).then(r => r.data),
     // Métrica fire-and-forget: nunca lanza ni bloquea nada.
     metric:      (event, meta) => send("nrx-metric", { event, meta: meta || "" }, 4000).catch(() => {})
   };
@@ -252,13 +253,13 @@ const detectLang = () => {
 
 /* ───────────────── SCANNER I18N ───────────────── */
 const SCAN_T = {
-  es: { scan_title:"Escáner de suplementos", scan_sub:"Fotografía la etiqueta de cualquier suplemento y obtén un análisis objetivo con puntuación de seguridad, eficacia y transparencia.", scan_cta:"Escanear suplemento", recent:"Escaneados recientemente", empty_recent:"Aún no has escaneado ningún producto.", step1:"Frontal del bote", step1s:"Nombre del producto y marca", step2:"Tabla de ingredientes", step2s:"Supplement Facts / Información nutricional", step3:"Otros ingredientes", step3s:"Resto de la etiqueta y advertencias", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analizar", loading:["Leyendo la etiqueta…","Identificando ingredientes…","Calculando puntuaciones…","Casi listo…"], back:"Volver", overall:"Índice global", safety:"Seguridad", efficacy:"Eficacia", transparency:"Transparencia", good:"Lo bueno", bad:"Atención", ingredients:"Ingredientes", alternatives:"Cómo mejorarlo", expert:"Experto", expert_sub:"Pregunta cualquier duda sobre suplementos", expert_title:"¿Por dónde empezamos?", q1:"¿Qué magnesio ayuda a dormir mejor?", q2:"¿Puedo combinar probióticos y vitaminas?", q3:"¿Colágeno en polvo o en cápsulas?", type_msg:"Escribe tu pregunta…", err:"Algo ha fallado. Inténtalo de nuevo.", thinking:"Pensando…", add_routine:"Añadir a mi rutina", added:"✓ Añadido a tu rutina", already:"Ya está en tu rutina", ask_product:"Preguntar al experto sobre este producto", ask_product_msg:"Acabo de escanear \"{name}\"{brand}, puntuación {score}/100. ¿Qué opinas de este producto y cómo debería tomarlo?", pq_when:"¿Cuál es el mejor momento para tomar {a}?", pq_combo:"¿Puedo tomar {a} junto con {b}?", pq_food:"¿Con qué alimentos se absorbe mejor {a}?" },
-  en: { scan_title:"Supplement scanner", scan_sub:"Photograph any supplement label and get an objective analysis with safety, efficacy and transparency scores.", scan_cta:"Scan supplement", recent:"Recently scanned", empty_recent:"You haven’t scanned any product yet.", step1:"Front of the bottle", step1s:"Product name and brand", step2:"Ingredients panel", step2s:"Supplement Facts", step3:"Other ingredients", step3s:"Rest of the label and warnings", optional:"Optional", add_photo:"Photo", retake:"Retake", analyze:"Analyze", loading:["Reading the label…","Identifying ingredients…","Calculating scores…","Almost there…"], back:"Back", overall:"Overall score", safety:"Safety", efficacy:"Efficacy", transparency:"Transparency", good:"Good", bad:"Watch out", ingredients:"Ingredients", alternatives:"How to improve it", expert:"Expert", expert_sub:"Ask any question about supplements", expert_title:"Where should we start?", q1:"Which magnesium helps you sleep best?", q2:"Can I mix probiotics and vitamins?", q3:"Collagen powder or capsules?", type_msg:"Type your question…", err:"Something went wrong. Try again.", thinking:"Thinking…", add_routine:"Add to my routine", added:"✓ Added to your routine", already:"Already in your routine", ask_product:"Ask the expert about this product", ask_product_msg:"I just scanned \"{name}\"{brand}, scored {score}/100. What do you think of this product and how should I take it?", pq_when:"What's the best time of day to take {a}?", pq_combo:"Can I take {a} together with {b}?", pq_food:"Which foods help absorb {a} best?" },
-  fr: { scan_title:"Scanner de compléments", scan_sub:"Photographiez l’étiquette de n’importe quel complément et obtenez une analyse objective avec scores de sécurité, efficacité et transparence.", scan_cta:"Scanner un complément", recent:"Scannés récemment", empty_recent:"Vous n’avez encore scanné aucun produit.", step1:"Face avant du flacon", step1s:"Nom du produit et marque", step2:"Tableau des ingrédients", step2s:"Valeurs nutritionnelles", step3:"Autres ingrédients", step3s:"Reste de l’étiquette et avertissements", optional:"Optionnel", add_photo:"Photo", retake:"Reprendre", analyze:"Analyser", loading:["Lecture de l’étiquette…","Identification des ingrédients…","Calcul des scores…","Presque fini…"], back:"Retour", overall:"Score global", safety:"Sécurité", efficacy:"Efficacité", transparency:"Transparence", good:"Points forts", bad:"Attention", ingredients:"Ingrédients", alternatives:"Comment l’améliorer", expert:"Expert", expert_sub:"Posez toute question sur les compléments", expert_title:"Par où commençons-nous ?", q1:"Quel magnésium aide à mieux dormir ?", q2:"Puis-je combiner probiotiques et vitamines ?", q3:"Collagène en poudre ou en gélules ?", type_msg:"Écrivez votre question…", err:"Une erreur est survenue. Réessayez.", thinking:"Réflexion…", add_routine:"Ajouter à ma routine", added:"✓ Ajouté à votre routine", already:"Déjà dans votre routine", ask_product:"Demander à l'expert à propos de ce produit", ask_product_msg:"Je viens de scanner « {name} »{brand}, note {score}/100. Que pensez-vous de ce produit et comment devrais-je le prendre ?", pq_when:"Quel est le meilleur moment pour prendre {a} ?", pq_combo:"Puis-je prendre {a} avec {b} ?", pq_food:"Avec quels aliments {a} s'absorbe-t-il le mieux ?" },
-  it: { scan_title:"Scanner di integratori", scan_sub:"Fotografa l’etichetta di qualsiasi integratore e ottieni un’analisi oggettiva con punteggi di sicurezza, efficacia e trasparenza.", scan_cta:"Scansiona integratore", recent:"Scansionati di recente", empty_recent:"Non hai ancora scansionato nessun prodotto.", step1:"Fronte del flacone", step1s:"Nome del prodotto e marca", step2:"Tabella degli ingredienti", step2s:"Informazioni nutrizionali", step3:"Altri ingredienti", step3s:"Resto dell’etichetta e avvertenze", optional:"Opzionale", add_photo:"Foto", retake:"Ripeti", analyze:"Analizza", loading:["Lettura dell’etichetta…","Identificazione degli ingredienti…","Calcolo dei punteggi…","Quasi pronto…"], back:"Indietro", overall:"Punteggio globale", safety:"Sicurezza", efficacy:"Efficacia", transparency:"Trasparenza", good:"Punti di forza", bad:"Attenzione", ingredients:"Ingredienti", alternatives:"Come migliorarlo", expert:"Esperto", expert_sub:"Fai qualsiasi domanda sugli integratori", expert_title:"Da dove iniziamo?", q1:"Quale magnesio aiuta a dormire meglio?", q2:"Posso combinare probiotici e vitamine?", q3:"Collagene in polvere o in capsule?", type_msg:"Scrivi la tua domanda…", err:"Qualcosa è andato storto. Riprova.", thinking:"Sto pensando…", add_routine:"Aggiungi alla mia routine", added:"✓ Aggiunto alla tua routine", already:"Già nella tua routine", ask_product:"Chiedi all'esperto di questo prodotto", ask_product_msg:"Ho appena scansionato \"{name}\"{brand}, punteggio {score}/100. Cosa ne pensi di questo prodotto e come dovrei assumerlo?", pq_when:"Qual è il momento migliore per assumere {a}?", pq_combo:"Posso assumere {a} insieme a {b}?", pq_food:"Con quali alimenti si assorbe meglio {a}?" },
-  de: { scan_title:"Supplement-Scanner", scan_sub:"Fotografieren Sie das Etikett eines Nahrungsergänzungsmittels und erhalten Sie eine objektive Analyse mit Bewertungen zu Sicherheit, Wirksamkeit und Transparenz.", scan_cta:"Supplement scannen", recent:"Zuletzt gescannt", empty_recent:"Sie haben noch kein Produkt gescannt.", step1:"Vorderseite der Flasche", step1s:"Produktname und Marke", step2:"Zutatentabelle", step2s:"Nährwertangaben", step3:"Weitere Zutaten", step3s:"Rest des Etiketts und Warnhinweise", optional:"Optional", add_photo:"Foto", retake:"Wiederholen", analyze:"Analysieren", loading:["Etikett wird gelesen…","Zutaten werden identifiziert…","Bewertungen werden berechnet…","Fast fertig…"], back:"Zurück", overall:"Gesamtbewertung", safety:"Sicherheit", efficacy:"Wirksamkeit", transparency:"Transparenz", good:"Stärken", bad:"Achtung", ingredients:"Zutaten", alternatives:"Verbesserungsmöglichkeiten", expert:"Experte", expert_sub:"Stellen Sie jede Frage zu Supplementen", expert_title:"Womit fangen wir an?", q1:"Welches Magnesium hilft beim Schlafen?", q2:"Kann ich Probiotika und Vitamine kombinieren?", q3:"Kollagen als Pulver oder Kapseln?", type_msg:"Schreiben Sie Ihre Frage…", err:"Etwas ist schiefgelaufen. Versuchen Sie es erneut.", thinking:"Denke nach…", add_routine:"Zu meiner Routine hinzufügen", added:"✓ Zu Ihrer Routine hinzugefügt", already:"Bereits in Ihrer Routine", ask_product:"Den Experten zu diesem Produkt fragen", ask_product_msg:"Ich habe gerade \"{name}\"{brand} gescannt, Bewertung {score}/100. Was halten Sie von diesem Produkt und wie sollte ich es einnehmen?", pq_when:"Wann ist die beste Tageszeit für {a}?", pq_combo:"Kann ich {a} zusammen mit {b} einnehmen?", pq_food:"Mit welchen Lebensmitteln wird {a} am besten aufgenommen?" },
-  pt: { scan_title:"Scanner de suplementos", scan_sub:"Fotografe o rótulo de qualquer suplemento e obtenha uma análise objetiva com pontuações de segurança, eficácia e transparência.", scan_cta:"Escanear suplemento", recent:"Escaneados recentemente", empty_recent:"Você ainda não escaneou nenhum produto.", step1:"Frente do frasco", step1s:"Nome do produto e marca", step2:"Tabela de ingredientes", step2s:"Informação nutricional", step3:"Outros ingredientes", step3s:"Resto do rótulo e advertências", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analisar", loading:["Lendo o rótulo…","Identificando ingredientes…","Calculando pontuações…","Quase pronto…"], back:"Voltar", overall:"Índice global", safety:"Segurança", efficacy:"Eficácia", transparency:"Transparência", good:"Pontos fortes", bad:"Atenção", ingredients:"Ingredientes", alternatives:"Como melhorar", expert:"Especialista", expert_sub:"Pergunte qualquer dúvida sobre suplementos", expert_title:"Por onde começamos?", q1:"Qual magnésio ajuda a dormir melhor?", q2:"Posso combinar probióticos e vitaminas?", q3:"Colágeno em pó ou em cápsulas?", type_msg:"Escreva sua pergunta…", err:"Algo deu errado. Tente novamente.", thinking:"Pensando…", add_routine:"Adicionar à minha rotina", added:"✓ Adicionado à sua rotina", already:"Já está na sua rotina", ask_product:"Perguntar ao especialista sobre este produto", ask_product_msg:"Acabei de escanear \"{name}\"{brand}, pontuação {score}/100. O que você acha deste produto e como devo tomá-lo?", pq_when:"Qual é o melhor momento para tomar {a}?", pq_combo:"Posso tomar {a} junto com {b}?", pq_food:"Com quais alimentos {a} é melhor absorvido?" },
-  ea: { scan_title:"ماسح المكملات", scan_sub:"صوّر ملصق أي مكمل غذائي واحصل على تحليل موضوعي مع تقييمات الأمان والفعالية والشفافية.", scan_cta:"مسح مكمل", recent:"تم مسحها مؤخرًا", empty_recent:"لم تقم بمسح أي منتج بعد.", step1:"واجهة العبوة", step1s:"اسم المنتج والعلامة التجارية", step2:"جدول المكونات", step2s:"حقائق المكمل الغذائي", step3:"مكونات أخرى", step3s:"بقية الملصق والتحذيرات", optional:"اختياري", add_photo:"صورة", retake:"إعادة", analyze:"تحليل", loading:["قراءة الملصق…","تحديد المكونات…","حساب التقييمات…","اقتربنا…"], back:"رجوع", overall:"التقييم العام", safety:"الأمان", efficacy:"الفعالية", transparency:"الشفافية", good:"الإيجابيات", bad:"انتبه", ingredients:"المكونات", alternatives:"كيفية تحسينه", expert:"الخبير", expert_sub:"اسأل أي سؤال عن المكملات", expert_title:"من أين نبدأ؟", q1:"أي نوع من المغنيسيوم يساعد على النوم؟", q2:"هل يمكن الجمع بين البروبيوتيك والفيتامينات؟", q3:"الكولاجين بودرة أم كبسولات؟", type_msg:"اكتب سؤالك…", err:"حدث خطأ ما. حاول مرة أخرى.", thinking:"يفكر…", add_routine:"أضِف إلى روتيني", added:"✓ تمت الإضافة إلى روتينك", already:"موجود بالفعل في روتينك", ask_product:"اسأل الخبير عن هذا المنتج", ask_product_msg:"لقد مسحت للتو \"{name}\"{brand} بتقييم {score}/100. ما رأيك في هذا المنتج وكيف يجب أن أتناوله؟", pq_when:"ما أفضل وقت في اليوم لتناول {a}؟", pq_combo:"هل يمكنني تناول {a} مع {b}؟", pq_food:"مع أي أطعمة يُمتص {a} بشكل أفضل؟" }
+  es: { scan_title:"Escáner de suplementos", scan_sub:"Fotografía la etiqueta de cualquier suplemento y obtén un análisis objetivo con puntuación de seguridad, eficacia y transparencia.", scan_cta:"Escanear suplemento", recent:"Escaneados recientemente", empty_recent:"Aún no has escaneado ningún producto.", step1:"Frontal del bote", step1s:"Nombre del producto y marca", step2:"Tabla de ingredientes", step2s:"Supplement Facts / Información nutricional", step3:"Otros ingredientes", step3s:"Resto de la etiqueta y advertencias", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analizar", loading:["Leyendo la etiqueta…","Identificando ingredientes…","Calculando puntuaciones…","Casi listo…"], back:"Volver", overall:"Índice global", safety:"Seguridad", efficacy:"Eficacia", transparency:"Transparencia", good:"Lo bueno", bad:"Atención", ingredients:"Ingredientes", alternatives:"Cómo mejorarlo", expert:"Experto", expert_sub:"Pregunta cualquier duda sobre suplementos", expert_title:"¿Por dónde empezamos?", q1:"¿Qué magnesio ayuda a dormir mejor?", q2:"¿Puedo combinar probióticos y vitaminas?", q3:"¿Colágeno en polvo o en cápsulas?", type_msg:"Escribe tu pregunta…", err:"Algo ha fallado. Inténtalo de nuevo.", thinking:"Pensando…", confirm_del:"¿Eliminar?", add_routine:"Añadir a mi rutina", added:"✓ Añadido a tu rutina", already:"Ya está en tu rutina", ask_product:"Preguntar al experto sobre este producto", ask_product_msg:"Acabo de escanear \"{name}\"{brand}, puntuación {score}/100. ¿Qué opinas de este producto y cómo debería tomarlo?", pq_when:"¿Cuál es el mejor momento para tomar {a}?", pq_combo:"¿Puedo tomar {a} junto con {b}?", pq_food:"¿Con qué alimentos se absorbe mejor {a}?" },
+  en: { scan_title:"Supplement scanner", scan_sub:"Photograph any supplement label and get an objective analysis with safety, efficacy and transparency scores.", scan_cta:"Scan supplement", recent:"Recently scanned", empty_recent:"You haven’t scanned any product yet.", step1:"Front of the bottle", step1s:"Product name and brand", step2:"Ingredients panel", step2s:"Supplement Facts", step3:"Other ingredients", step3s:"Rest of the label and warnings", optional:"Optional", add_photo:"Photo", retake:"Retake", analyze:"Analyze", loading:["Reading the label…","Identifying ingredients…","Calculating scores…","Almost there…"], back:"Back", overall:"Overall score", safety:"Safety", efficacy:"Efficacy", transparency:"Transparency", good:"Good", bad:"Watch out", ingredients:"Ingredients", alternatives:"How to improve it", expert:"Expert", expert_sub:"Ask any question about supplements", expert_title:"Where should we start?", q1:"Which magnesium helps you sleep best?", q2:"Can I mix probiotics and vitamins?", q3:"Collagen powder or capsules?", type_msg:"Type your question…", err:"Something went wrong. Try again.", thinking:"Thinking…", confirm_del:"Delete?", add_routine:"Add to my routine", added:"✓ Added to your routine", already:"Already in your routine", ask_product:"Ask the expert about this product", ask_product_msg:"I just scanned \"{name}\"{brand}, scored {score}/100. What do you think of this product and how should I take it?", pq_when:"What's the best time of day to take {a}?", pq_combo:"Can I take {a} together with {b}?", pq_food:"Which foods help absorb {a} best?" },
+  fr: { scan_title:"Scanner de compléments", scan_sub:"Photographiez l’étiquette de n’importe quel complément et obtenez une analyse objective avec scores de sécurité, efficacité et transparence.", scan_cta:"Scanner un complément", recent:"Scannés récemment", empty_recent:"Vous n’avez encore scanné aucun produit.", step1:"Face avant du flacon", step1s:"Nom du produit et marque", step2:"Tableau des ingrédients", step2s:"Valeurs nutritionnelles", step3:"Autres ingrédients", step3s:"Reste de l’étiquette et avertissements", optional:"Optionnel", add_photo:"Photo", retake:"Reprendre", analyze:"Analyser", loading:["Lecture de l’étiquette…","Identification des ingrédients…","Calcul des scores…","Presque fini…"], back:"Retour", overall:"Score global", safety:"Sécurité", efficacy:"Efficacité", transparency:"Transparence", good:"Points forts", bad:"Attention", ingredients:"Ingrédients", alternatives:"Comment l’améliorer", expert:"Expert", expert_sub:"Posez toute question sur les compléments", expert_title:"Par où commençons-nous ?", q1:"Quel magnésium aide à mieux dormir ?", q2:"Puis-je combiner probiotiques et vitamines ?", q3:"Collagène en poudre ou en gélules ?", type_msg:"Écrivez votre question…", err:"Une erreur est survenue. Réessayez.", thinking:"Réflexion…", confirm_del:"Supprimer ?", add_routine:"Ajouter à ma routine", added:"✓ Ajouté à votre routine", already:"Déjà dans votre routine", ask_product:"Demander à l'expert à propos de ce produit", ask_product_msg:"Je viens de scanner « {name} »{brand}, note {score}/100. Que pensez-vous de ce produit et comment devrais-je le prendre ?", pq_when:"Quel est le meilleur moment pour prendre {a} ?", pq_combo:"Puis-je prendre {a} avec {b} ?", pq_food:"Avec quels aliments {a} s'absorbe-t-il le mieux ?" },
+  it: { scan_title:"Scanner di integratori", scan_sub:"Fotografa l’etichetta di qualsiasi integratore e ottieni un’analisi oggettiva con punteggi di sicurezza, efficacia e trasparenza.", scan_cta:"Scansiona integratore", recent:"Scansionati di recente", empty_recent:"Non hai ancora scansionato nessun prodotto.", step1:"Fronte del flacone", step1s:"Nome del prodotto e marca", step2:"Tabella degli ingredienti", step2s:"Informazioni nutrizionali", step3:"Altri ingredienti", step3s:"Resto dell’etichetta e avvertenze", optional:"Opzionale", add_photo:"Foto", retake:"Ripeti", analyze:"Analizza", loading:["Lettura dell’etichetta…","Identificazione degli ingredienti…","Calcolo dei punteggi…","Quasi pronto…"], back:"Indietro", overall:"Punteggio globale", safety:"Sicurezza", efficacy:"Efficacia", transparency:"Trasparenza", good:"Punti di forza", bad:"Attenzione", ingredients:"Ingredienti", alternatives:"Come migliorarlo", expert:"Esperto", expert_sub:"Fai qualsiasi domanda sugli integratori", expert_title:"Da dove iniziamo?", q1:"Quale magnesio aiuta a dormire meglio?", q2:"Posso combinare probiotici e vitamine?", q3:"Collagene in polvere o in capsule?", type_msg:"Scrivi la tua domanda…", err:"Qualcosa è andato storto. Riprova.", thinking:"Sto pensando…", confirm_del:"Eliminare?", add_routine:"Aggiungi alla mia routine", added:"✓ Aggiunto alla tua routine", already:"Già nella tua routine", ask_product:"Chiedi all'esperto di questo prodotto", ask_product_msg:"Ho appena scansionato \"{name}\"{brand}, punteggio {score}/100. Cosa ne pensi di questo prodotto e come dovrei assumerlo?", pq_when:"Qual è il momento migliore per assumere {a}?", pq_combo:"Posso assumere {a} insieme a {b}?", pq_food:"Con quali alimenti si assorbe meglio {a}?" },
+  de: { scan_title:"Supplement-Scanner", scan_sub:"Fotografieren Sie das Etikett eines Nahrungsergänzungsmittels und erhalten Sie eine objektive Analyse mit Bewertungen zu Sicherheit, Wirksamkeit und Transparenz.", scan_cta:"Supplement scannen", recent:"Zuletzt gescannt", empty_recent:"Sie haben noch kein Produkt gescannt.", step1:"Vorderseite der Flasche", step1s:"Produktname und Marke", step2:"Zutatentabelle", step2s:"Nährwertangaben", step3:"Weitere Zutaten", step3s:"Rest des Etiketts und Warnhinweise", optional:"Optional", add_photo:"Foto", retake:"Wiederholen", analyze:"Analysieren", loading:["Etikett wird gelesen…","Zutaten werden identifiziert…","Bewertungen werden berechnet…","Fast fertig…"], back:"Zurück", overall:"Gesamtbewertung", safety:"Sicherheit", efficacy:"Wirksamkeit", transparency:"Transparenz", good:"Stärken", bad:"Achtung", ingredients:"Zutaten", alternatives:"Verbesserungsmöglichkeiten", expert:"Experte", expert_sub:"Stellen Sie jede Frage zu Supplementen", expert_title:"Womit fangen wir an?", q1:"Welches Magnesium hilft beim Schlafen?", q2:"Kann ich Probiotika und Vitamine kombinieren?", q3:"Kollagen als Pulver oder Kapseln?", type_msg:"Schreiben Sie Ihre Frage…", err:"Etwas ist schiefgelaufen. Versuchen Sie es erneut.", thinking:"Denke nach…", confirm_del:"Löschen?", add_routine:"Zu meiner Routine hinzufügen", added:"✓ Zu Ihrer Routine hinzugefügt", already:"Bereits in Ihrer Routine", ask_product:"Den Experten zu diesem Produkt fragen", ask_product_msg:"Ich habe gerade \"{name}\"{brand} gescannt, Bewertung {score}/100. Was halten Sie von diesem Produkt und wie sollte ich es einnehmen?", pq_when:"Wann ist die beste Tageszeit für {a}?", pq_combo:"Kann ich {a} zusammen mit {b} einnehmen?", pq_food:"Mit welchen Lebensmitteln wird {a} am besten aufgenommen?" },
+  pt: { scan_title:"Scanner de suplementos", scan_sub:"Fotografe o rótulo de qualquer suplemento e obtenha uma análise objetiva com pontuações de segurança, eficácia e transparência.", scan_cta:"Escanear suplemento", recent:"Escaneados recentemente", empty_recent:"Você ainda não escaneou nenhum produto.", step1:"Frente do frasco", step1s:"Nome do produto e marca", step2:"Tabela de ingredientes", step2s:"Informação nutricional", step3:"Outros ingredientes", step3s:"Resto do rótulo e advertências", optional:"Opcional", add_photo:"Foto", retake:"Repetir", analyze:"Analisar", loading:["Lendo o rótulo…","Identificando ingredientes…","Calculando pontuações…","Quase pronto…"], back:"Voltar", overall:"Índice global", safety:"Segurança", efficacy:"Eficácia", transparency:"Transparência", good:"Pontos fortes", bad:"Atenção", ingredients:"Ingredientes", alternatives:"Como melhorar", expert:"Especialista", expert_sub:"Pergunte qualquer dúvida sobre suplementos", expert_title:"Por onde começamos?", q1:"Qual magnésio ajuda a dormir melhor?", q2:"Posso combinar probióticos e vitaminas?", q3:"Colágeno em pó ou em cápsulas?", type_msg:"Escreva sua pergunta…", err:"Algo deu errado. Tente novamente.", thinking:"Pensando…", confirm_del:"Excluir?", add_routine:"Adicionar à minha rotina", added:"✓ Adicionado à sua rotina", already:"Já está na sua rotina", ask_product:"Perguntar ao especialista sobre este produto", ask_product_msg:"Acabei de escanear \"{name}\"{brand}, pontuação {score}/100. O que você acha deste produto e como devo tomá-lo?", pq_when:"Qual é o melhor momento para tomar {a}?", pq_combo:"Posso tomar {a} junto com {b}?", pq_food:"Com quais alimentos {a} é melhor absorvido?" },
+  ea: { scan_title:"ماسح المكملات", scan_sub:"صوّر ملصق أي مكمل غذائي واحصل على تحليل موضوعي مع تقييمات الأمان والفعالية والشفافية.", scan_cta:"مسح مكمل", recent:"تم مسحها مؤخرًا", empty_recent:"لم تقم بمسح أي منتج بعد.", step1:"واجهة العبوة", step1s:"اسم المنتج والعلامة التجارية", step2:"جدول المكونات", step2s:"حقائق المكمل الغذائي", step3:"مكونات أخرى", step3s:"بقية الملصق والتحذيرات", optional:"اختياري", add_photo:"صورة", retake:"إعادة", analyze:"تحليل", loading:["قراءة الملصق…","تحديد المكونات…","حساب التقييمات…","اقتربنا…"], back:"رجوع", overall:"التقييم العام", safety:"الأمان", efficacy:"الفعالية", transparency:"الشفافية", good:"الإيجابيات", bad:"انتبه", ingredients:"المكونات", alternatives:"كيفية تحسينه", expert:"الخبير", expert_sub:"اسأل أي سؤال عن المكملات", expert_title:"من أين نبدأ؟", q1:"أي نوع من المغنيسيوم يساعد على النوم؟", q2:"هل يمكن الجمع بين البروبيوتيك والفيتامينات؟", q3:"الكولاجين بودرة أم كبسولات؟", type_msg:"اكتب سؤالك…", err:"حدث خطأ ما. حاول مرة أخرى.", thinking:"يفكر…", confirm_del:"حذف؟", add_routine:"أضِف إلى روتيني", added:"✓ تمت الإضافة إلى روتينك", already:"موجود بالفعل في روتينك", ask_product:"اسأل الخبير عن هذا المنتج", ask_product_msg:"لقد مسحت للتو \"{name}\"{brand} بتقييم {score}/100. ما رأيك في هذا المنتج وكيف يجب أن أتناوله؟", pq_when:"ما أفضل وقت في اليوم لتناول {a}؟", pq_combo:"هل يمكنني تناول {a} مع {b}؟", pq_food:"مع أي أطعمة يُمتص {a} بشكل أفضل؟" }
 };
 
 /* ───────────────── FEATURE FLAGS ───────────────── */
@@ -302,13 +303,13 @@ const T = {
 
 /* ───────────────── EXTRA TRANSLATIONS (added in phase 2 features) ───────────────── */
 const EXTRA_T = {
-  es: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"¿Regenerar tu rutina?", regen_confirm_body:"Tu racha de {streak} días se mantendrá intacta. Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_body_nostreak:"Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_btn:"Sí, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota del día", note_placeholder:"Cómo te has sentido hoy (opcional)…", grace_day:"Día de gracia usado", none_excludes:"Al seleccionar \"ninguna\", las demás opciones se desactivan", push_test_btn:"Probar notificación", push_test_ok:"✓ Notificación enviada — debería llegar en unos segundos", push_test_no_sub:"Activa primero las notificaciones en este navegador", nav_tracker:"Suplementos", nav_scanner:"Escáner", nav_expert:"Experto" },
-  en: { mark_all:"Mark all", unmark_all:"Unmark all", regen_confirm_title:"Regenerate your routine?", regen_confirm_body:"Your {streak}-day streak will stay intact. A new routine will be generated based on updated goals.", regen_confirm_body_nostreak:"A new routine will be generated based on updated goals.", regen_confirm_btn:"Yes, regenerate", regen_cancel_btn:"Cancel", note_label:"Today's note", note_placeholder:"How have you felt today (optional)…", grace_day:"Grace day used", none_excludes:"Selecting \"none\" disables the other options", push_test_btn:"Test notification", push_test_ok:"✓ Notification sent — it should arrive in a few seconds", push_test_no_sub:"Enable notifications in this browser first", nav_tracker:"Supplements", nav_scanner:"Scanner", nav_expert:"Expert" },
-  fr: { mark_all:"Tout marquer", unmark_all:"Tout démarquer", regen_confirm_title:"Régénérer votre routine ?", regen_confirm_body:"Votre série de {streak} jours restera intacte. Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_body_nostreak:"Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_btn:"Oui, régénérer", regen_cancel_btn:"Annuler", note_label:"Note du jour", note_placeholder:"Comment vous sentez-vous aujourd'hui (facultatif)…", grace_day:"Jour de grâce utilisé", none_excludes:"En sélectionnant « aucune », les autres options sont désactivées", push_test_btn:"Tester la notification", push_test_ok:"✓ Notification envoyée — elle devrait arriver dans quelques secondes", push_test_no_sub:"Activez d'abord les notifications dans ce navigateur", nav_tracker:"Suppléments", nav_scanner:"Scanner", nav_expert:"Expert" },
-  de: { mark_all:"Alle markieren", unmark_all:"Alle demarkieren", regen_confirm_title:"Ihre Routine neu generieren?", regen_confirm_body:"Ihre {streak}-Tage-Serie bleibt erhalten. Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_body_nostreak:"Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_btn:"Ja, neu generieren", regen_cancel_btn:"Abbrechen", note_label:"Tagesnotiz", note_placeholder:"Wie haben Sie sich heute gefühlt (optional)…", grace_day:"Kulanztag verwendet", none_excludes:"Bei Auswahl von „keine\" werden die anderen Optionen deaktiviert", push_test_btn:"Benachrichtigung testen", push_test_ok:"✓ Benachrichtigung gesendet — sie sollte in wenigen Sekunden ankommen", push_test_no_sub:"Aktivieren Sie zunächst die Benachrichtigungen in diesem Browser", nav_tracker:"Supplemente", nav_scanner:"Scanner", nav_expert:"Experte" },
-  pt: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"Regenerar sua rotina?", regen_confirm_body:"Sua sequência de {streak} dias permanecerá intacta. Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_body_nostreak:"Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_btn:"Sim, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota do dia", note_placeholder:"Como você se sentiu hoje (opcional)…", grace_day:"Dia de graça usado", none_excludes:"Ao selecionar \"nenhuma\", as outras opções ficam desativadas", push_test_btn:"Testar notificação", push_test_ok:"✓ Notificação enviada — deve chegar em alguns segundos", push_test_no_sub:"Ative primeiro as notificações neste navegador", nav_tracker:"Suplementos", nav_scanner:"Scanner", nav_expert:"Especialista" },
-  it: { mark_all:"Seleziona tutti", unmark_all:"Deseleziona tutti", regen_confirm_title:"Rigenerare la tua routine?", regen_confirm_body:"La tua serie di {streak} giorni rimarrà intatta. Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_body_nostreak:"Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_btn:"Sì, rigenera", regen_cancel_btn:"Annulla", note_label:"Nota del giorno", note_placeholder:"Come ti sei sentito oggi (facoltativo)…", grace_day:"Giorno di grazia usato", none_excludes:"Selezionando \"nessuna\", le altre opzioni vengono disattivate", push_test_btn:"Prova notifica", push_test_ok:"✓ Notifica inviata — dovrebbe arrivare in pochi secondi", push_test_no_sub:"Attiva prima le notifiche in questo browser", nav_tracker:"Integratori", nav_scanner:"Scanner", nav_expert:"Esperto" },
-  ea: { mark_all:"تحديد الكل", unmark_all:"إلغاء التحديد", regen_confirm_title:"إعادة إنشاء روتينك؟", regen_confirm_body:"سلسلتك البالغة {streak} يومًا ستبقى سليمة. سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_body_nostreak:"سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_btn:"نعم، إعادة الإنشاء", regen_cancel_btn:"إلغاء", note_label:"ملاحظة اليوم", note_placeholder:"كيف شعرت اليوم (اختياري)…", grace_day:"تم استخدام يوم السماح", none_excludes:"عند اختيار \"لا شيء\"، يتم تعطيل الخيارات الأخرى", push_test_btn:"اختبر الإشعار", push_test_ok:"✓ تم إرسال الإشعار — يجب أن يصل خلال ثوانٍ", push_test_no_sub:"فعّل الإشعارات أولاً في هذا المتصفح", nav_tracker:"المكملات", nav_scanner:"الماسح", nav_expert:"الخبير" }
+  es: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"¿Regenerar tu rutina?", regen_confirm_body:"Tu racha de {streak} días se mantendrá intacta. Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_body_nostreak:"Se generará una nueva rutina basada en objetivos actualizados.", regen_confirm_btn:"Sí, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota del día", note_placeholder:"Cómo te has sentido hoy (opcional)…", grace_day:"Día de gracia usado", none_excludes:"Al seleccionar \"ninguna\", las demás opciones se desactivan", push_test_btn:"Probar notificación", push_test_ok:"✓ Notificación enviada — debería llegar en unos segundos", push_test_no_sub:"Activa primero las notificaciones en este navegador", nav_tracker:"Suplementos", nav_scanner:"Escáner", nav_expert:"Experto", del_title:"¿Eliminar de tu rutina?", del_body:"¿Seguro que quieres eliminar \"{name}\" de tu rutina?", del_btn:"Sí, eliminar" },
+  en: { mark_all:"Mark all", unmark_all:"Unmark all", regen_confirm_title:"Regenerate your routine?", regen_confirm_body:"Your {streak}-day streak will stay intact. A new routine will be generated based on updated goals.", regen_confirm_body_nostreak:"A new routine will be generated based on updated goals.", regen_confirm_btn:"Yes, regenerate", regen_cancel_btn:"Cancel", note_label:"Today's note", note_placeholder:"How have you felt today (optional)…", grace_day:"Grace day used", none_excludes:"Selecting \"none\" disables the other options", push_test_btn:"Test notification", push_test_ok:"✓ Notification sent — it should arrive in a few seconds", push_test_no_sub:"Enable notifications in this browser first", nav_tracker:"Supplements", nav_scanner:"Scanner", nav_expert:"Expert", del_title:"Remove from your routine?", del_body:"Are you sure you want to remove \"{name}\" from your routine?", del_btn:"Yes, remove" },
+  fr: { mark_all:"Tout marquer", unmark_all:"Tout démarquer", regen_confirm_title:"Régénérer votre routine ?", regen_confirm_body:"Votre série de {streak} jours restera intacte. Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_body_nostreak:"Une nouvelle routine sera générée sur la base d'objectifs mis à jour.", regen_confirm_btn:"Oui, régénérer", regen_cancel_btn:"Annuler", note_label:"Note du jour", note_placeholder:"Comment vous sentez-vous aujourd'hui (facultatif)…", grace_day:"Jour de grâce utilisé", none_excludes:"En sélectionnant « aucune », les autres options sont désactivées", push_test_btn:"Tester la notification", push_test_ok:"✓ Notification envoyée — elle devrait arriver dans quelques secondes", push_test_no_sub:"Activez d'abord les notifications dans ce navigateur", nav_tracker:"Suppléments", nav_scanner:"Scanner", nav_expert:"Expert", del_title:"Retirer de votre routine ?", del_body:"Voulez-vous vraiment retirer « {name} » de votre routine ?", del_btn:"Oui, retirer" },
+  de: { mark_all:"Alle markieren", unmark_all:"Alle demarkieren", regen_confirm_title:"Ihre Routine neu generieren?", regen_confirm_body:"Ihre {streak}-Tage-Serie bleibt erhalten. Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_body_nostreak:"Eine neue Routine wird auf Basis aktualisierter Ziele erstellt.", regen_confirm_btn:"Ja, neu generieren", regen_cancel_btn:"Abbrechen", note_label:"Tagesnotiz", note_placeholder:"Wie haben Sie sich heute gefühlt (optional)…", grace_day:"Kulanztag verwendet", none_excludes:"Bei Auswahl von „keine\" werden die anderen Optionen deaktiviert", push_test_btn:"Benachrichtigung testen", push_test_ok:"✓ Benachrichtigung gesendet — sie sollte in wenigen Sekunden ankommen", push_test_no_sub:"Aktivieren Sie zunächst die Benachrichtigungen in diesem Browser", nav_tracker:"Supplemente", nav_scanner:"Scanner", nav_expert:"Experte", del_title:"Aus Ihrer Routine entfernen?", del_body:"Möchten Sie \"{name}\" wirklich aus Ihrer Routine entfernen?", del_btn:"Ja, entfernen" },
+  pt: { mark_all:"Marcar todos", unmark_all:"Desmarcar todos", regen_confirm_title:"Regenerar sua rotina?", regen_confirm_body:"Sua sequência de {streak} dias permanecerá intacta. Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_body_nostreak:"Uma nova rotina será gerada com base em objetivos atualizados.", regen_confirm_btn:"Sim, regenerar", regen_cancel_btn:"Cancelar", note_label:"Nota do dia", note_placeholder:"Como você se sentiu hoje (opcional)…", grace_day:"Dia de graça usado", none_excludes:"Ao selecionar \"nenhuma\", as outras opções ficam desativadas", push_test_btn:"Testar notificação", push_test_ok:"✓ Notificação enviada — deve chegar em alguns segundos", push_test_no_sub:"Ative primeiro as notificações neste navegador", nav_tracker:"Suplementos", nav_scanner:"Scanner", nav_expert:"Especialista", del_title:"Remover da sua rotina?", del_body:"Tem certeza de que deseja remover \"{name}\" da sua rotina?", del_btn:"Sim, remover" },
+  it: { mark_all:"Seleziona tutti", unmark_all:"Deseleziona tutti", regen_confirm_title:"Rigenerare la tua routine?", regen_confirm_body:"La tua serie di {streak} giorni rimarrà intatta. Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_body_nostreak:"Verrà generata una nuova routine basata su obiettivi aggiornati.", regen_confirm_btn:"Sì, rigenera", regen_cancel_btn:"Annulla", note_label:"Nota del giorno", note_placeholder:"Come ti sei sentito oggi (facoltativo)…", grace_day:"Giorno di grazia usato", none_excludes:"Selezionando \"nessuna\", le altre opzioni vengono disattivate", push_test_btn:"Prova notifica", push_test_ok:"✓ Notifica inviata — dovrebbe arrivare in pochi secondi", push_test_no_sub:"Attiva prima le notifiche in questo browser", nav_tracker:"Integratori", nav_scanner:"Scanner", nav_expert:"Esperto", del_title:"Rimuovere dalla tua routine?", del_body:"Vuoi davvero rimuovere \"{name}\" dalla tua routine?", del_btn:"Sì, rimuovi" },
+  ea: { mark_all:"تحديد الكل", unmark_all:"إلغاء التحديد", regen_confirm_title:"إعادة إنشاء روتينك؟", regen_confirm_body:"سلسلتك البالغة {streak} يومًا ستبقى سليمة. سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_body_nostreak:"سيتم إنشاء روتين جديد بناءً على أهداف محدّثة.", regen_confirm_btn:"نعم، إعادة الإنشاء", regen_cancel_btn:"إلغاء", note_label:"ملاحظة اليوم", note_placeholder:"كيف شعرت اليوم (اختياري)…", grace_day:"تم استخدام يوم السماح", none_excludes:"عند اختيار \"لا شيء\"، يتم تعطيل الخيارات الأخرى", push_test_btn:"اختبر الإشعار", push_test_ok:"✓ تم إرسال الإشعار — يجب أن يصل خلال ثوانٍ", push_test_no_sub:"فعّل الإشعارات أولاً في هذا المتصفح", nav_tracker:"المكملات", nav_scanner:"الماسح", nav_expert:"الخبير", del_title:"إزالة من روتينك؟", del_body:"هل أنت متأكد أنك تريد إزالة \"{name}\" من روتينك؟", del_btn:"نعم، إزالة" }
 };
 
 /* ───────────────── GOALS & CONTRAINDICATIONS ───────────────── */
@@ -628,14 +629,53 @@ const Ring = ({ pct, size = 72, stroke = 6, showLabel = true }) => {
 };
 
 /* ───────────────── SUPPLEMENT CARD ───────────────── */
-function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
+function SuppCard({ supp, checked, onToggle, compact, t, readOnly, onDelete, isRTL }) {
   const [exp, setExp] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const touch = useRef({ x: 0, y: 0, locked: null, moved: false });
 
   // Cuando activamos modo compacto, colapsar la card automáticamente.
   // Evita que cards previamente expandidas sigan abiertas tras cambiar el toggle.
   useEffect(() => {
     if (compact) setExp(false);
   }, [compact]);
+
+  /* Swipe para eliminar (solo con onDelete). Dirección: hacia el inicio de
+     lectura (izquierda en LTR, derecha en RTL) — coincide con la dirección
+     "hacia el futuro" del swipe de día, que está bloqueada en HOY, así que
+     no compite con el cambio de día. Una vez bloqueado el gesto como
+     horizontal-de-borrado, se corta la propagación al contenedor. */
+  const DEL_DIR = isRTL ? 1 : -1; // signo de dx que dispara el borrado
+  const onCardTouchStart = (e) => {
+    if (!onDelete) return;
+    touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, locked: null, moved: false };
+  };
+  const onCardTouchMove = (e) => {
+    if (!onDelete) return;
+    const dx = e.touches[0].clientX - touch.current.x;
+    const dy = e.touches[0].clientY - touch.current.y;
+    if (touch.current.locked === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      touch.current.locked = (Math.abs(dx) > Math.abs(dy) && dx * DEL_DIR > 0) ? "delete" : "other";
+    }
+    if (touch.current.locked === "delete") {
+      e.stopPropagation();
+      touch.current.moved = true;
+      const mag = Math.min(Math.abs(dx), 96);
+      setDragX(mag * DEL_DIR);
+    }
+  };
+  const onCardTouchEnd = (e) => {
+    if (!onDelete) return;
+    if (touch.current.locked === "delete") {
+      e.stopPropagation();
+      if (Math.abs(dragX) > 70) { haptic(12); onDelete(supp); }
+      setDragX(0);
+    }
+    // Suprimir el click-toggle que sigue a un arrastre
+    if (touch.current.moved) {
+      setTimeout(() => { touch.current.moved = false; }, 50);
+    }
+  };
 
   const showExpanded = !compact || exp;
   const hasNotes = !!supp.notes;
@@ -646,18 +686,35 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
   const hasBenefits = supp.benefits && supp.benefits.length > 0;
 
   return (
-    <div
-      onClick={() => { if (readOnly) return; onToggle(supp.id); }}
-      style={{
-        background: checked ? C.surfaceDone : C.surface,
-        border: `1px solid ${C.border}`,
-        borderRadius: 14,
-        padding: compact ? "10px 12px" : "13px 14px",
-        marginBottom: 8,
-        cursor: readOnly ? "default" : "pointer",
-        transition: "all 0.2s",
-        animation: "fadeUp 0.25s",
-        opacity: readOnly ? 0.75 : 1
+    <div style={{ position: "relative", marginBottom: 8 }}>
+      {/* Indicador de borrado revelado tras la card */}
+      {onDelete && dragX !== 0 && (
+        <div style={{
+          position: "absolute", inset: 0, borderRadius: 14,
+          background: C.afternoon.bg, border: `1px solid ${C.afternoon.border}`,
+          display: "flex", alignItems: "center",
+          justifyContent: isRTL ? "flex-start" : "flex-end",
+          padding: "0 18px", color: C.afternoon.icon,
+          opacity: Math.min(Math.abs(dragX) / 70, 1)
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </div>
+      )}
+      <div
+        onClick={() => { if (readOnly || touch.current.moved) return; onToggle(supp.id); }}
+        onTouchStart={onCardTouchStart}
+        onTouchMove={onCardTouchMove}
+        onTouchEnd={onCardTouchEnd}
+        style={{
+          transform: dragX !== 0 ? `translateX(${dragX}px)` : "none",
+          background: checked ? C.surfaceDone : C.surface,
+          border: `1px solid ${C.border}`,
+          borderRadius: 14,
+          padding: compact ? "10px 12px" : "13px 14px",
+          cursor: readOnly ? "default" : "pointer",
+          transition: dragX !== 0 ? "none" : "all 0.2s",
+          animation: "fadeUp 0.25s",
+          opacity: readOnly ? 0.75 : 1
       }}
     >
       <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
@@ -743,11 +800,12 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly }) {
         </div>
       </div>
     </div>
+    </div>
   );
 }
 
 /* ───────────────── PERIOD SECTION ───────────────── */
-function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compact, t, readOnly, isLast }) {
+function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compact, t, readOnly, isLast, onDelete, isRTL }) {
   const tone = C[period];
   if (!supplements.length) return null;
   const done = supplements.filter(s => checks[s.id]).length;
@@ -794,7 +852,7 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         </div>
       </div>
       {supplements.map(s => (
-        <SuppCard key={s.id} supp={s} checked={!!checks[s.id]} onToggle={onToggle} compact={compact} t={t} readOnly={readOnly} />
+        <SuppCard key={s.id} supp={s} checked={!!checks[s.id]} onToggle={onToggle} compact={compact} t={t} readOnly={readOnly} isRTL={isRTL} onDelete={onDelete ? (supp) => onDelete(supp, period) : null} />
       ))}
       {!isLast && <div style={{ height: 1, background: C.border, margin: "22px -20px 0" }} />}
     </div>
@@ -907,6 +965,55 @@ function RegenConfirmModal({ streak, t, onCancel, onConfirm }) {
             fontFamily: "Oswald,sans-serif", fontWeight: 600, fontSize: 13,
             letterSpacing: "0.03em", cursor: "pointer"
           }}>{t.regen_confirm_btn}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────────── DELETE SUPP CONFIRM MODAL ───────────────── */
+function DeleteSuppModal({ supp, t, onCancel, onConfirm }) {
+  const body = (t.del_body || "").replace("{name}", supp.name || "");
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(15,22,40,0.5)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 200, padding: 20, animation: "fadeIn 0.3s", backdropFilter: "blur(4px)"
+    }} onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: C.surface, borderRadius: 20, maxWidth: 380, width: "100%",
+        padding: "28px 24px 22px", animation: "modalIn 0.4s cubic-bezier(.2,.9,.3,1.2)",
+        border: `1px solid ${C.border}`
+      }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: "50%",
+          background: C.afternoon.bg, border: `1px solid ${C.afternoon.border}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 18px", color: C.afternoon.icon
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </div>
+        <h3 style={{
+          fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 19,
+          color: C.text, textAlign: "center", marginBottom: 12
+        }}>{t.del_title}</h3>
+        <p style={{
+          fontSize: 13, color: C.textDim, lineHeight: 1.6,
+          textAlign: "center", marginBottom: 22
+        }}>{body}</p>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={onCancel} style={{
+            flex: 1, padding: 13, borderRadius: 12,
+            background: "transparent", border: `1px solid ${C.borderStrong}`,
+            color: C.textDim, fontSize: 13, cursor: "pointer",
+            fontFamily: "Inter, sans-serif", fontWeight: 500
+          }}>{t.regen_cancel_btn}</button>
+          <button onClick={onConfirm} style={{
+            flex: 1.3, padding: 13, borderRadius: 12,
+            background: C.afternoon.icon, border: "none", color: "#fff",
+            fontFamily: "Oswald,sans-serif", fontWeight: 600, fontSize: 13,
+            letterSpacing: "0.03em", cursor: "pointer"
+          }}>{t.del_btn}</button>
         </div>
       </div>
     </div>
@@ -1410,6 +1517,7 @@ function ScannerView({ lang, active, t, routine, onAddToRoutine }) {
   const [error, setError] = useState(null);
   const [loadMsg, setLoadMsg] = useState(0);
   const [addFeedback, setAddFeedback] = useState(null); // "added" | "already"
+  const [confirmDelId, setConfirmDelId] = useState(null); // id de scan pendiente de confirmar borrado
   const loadedRef = useRef(false);
   const fileRefs = [useRef(null), useRef(null), useRef(null)];
   const chatEndRef = useRef(null);
@@ -1506,12 +1614,42 @@ function ScannerView({ lang, active, t, routine, onAddToRoutine }) {
       <h2 style={sectionTitle}>{st.recent}</h2>
       {recent.length ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))", gap: 10 }}>
-          {recent.map(p => (
-            <button key={p.id} onClick={() => openProduct(p.id)} style={{ ...card, padding: "14px 12px", cursor: "pointer", textAlign: "inherit", fontFamily: "inherit" }}>
-              <div className="nr-mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: scanScoreColor(p.overall_score) }}>{p.overall_score}</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: C.text, margin: "8px 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
-              <div style={{ fontSize: 11, color: C.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.brand}</div>
-            </button>
+          {recent.map(p => confirmDelId === p.id ? (
+            <div key={p.id} style={{ ...card, padding: "14px 12px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <div style={{ fontFamily: "Oswald,sans-serif", fontSize: 12, fontWeight: 600, color: C.text, textAlign: "center" }}>{st.confirm_del}</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={() => {
+                    setRecent(r => r.filter(x => x.id !== p.id));
+                    setConfirmDelId(null);
+                    bridge.suppDelScan(p.id).catch(() => loadRecent());
+                  }}
+                  style={{ width: 34, height: 34, borderRadius: "50%", border: 0, cursor: "pointer", background: C.afternoon.icon, color: "#fff", fontSize: 14, fontWeight: 700 }}
+                >✓</button>
+                <button
+                  onClick={() => setConfirmDelId(null)}
+                  style={{ width: 34, height: 34, borderRadius: "50%", border: `1px solid ${C.borderStrong}`, cursor: "pointer", background: "transparent", color: C.textDim, fontSize: 13 }}
+                >✕</button>
+              </div>
+            </div>
+          ) : (
+            <div key={p.id} style={{ position: "relative" }}>
+              <div role="button" tabIndex={0} onClick={() => openProduct(p.id)} style={{ ...card, padding: "14px 12px", cursor: "pointer" }}>
+                <div className="nr-mono" style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: scanScoreColor(p.overall_score) }}>{p.overall_score}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.text, margin: "8px 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.product_name}</div>
+                <div style={{ fontSize: 11, color: C.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.brand}</div>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); haptic(8); setConfirmDelId(p.id); }}
+                aria-label={st.confirm_del}
+                style={{
+                  position: "absolute", top: 6, insetInlineEnd: 6,
+                  width: 22, height: 22, borderRadius: "50%", border: 0, cursor: "pointer",
+                  background: C.bgSoft, color: C.textMuted, fontSize: 11, lineHeight: 1,
+                  display: "flex", alignItems: "center", justifyContent: "center"
+                }}
+              >✕</button>
+            </div>
           ))}
         </div>
       ) : (
@@ -2032,6 +2170,21 @@ export default function App() {
   const compact = compactManual;
 
   /* Handlers */
+  const [deleteTarget, setDeleteTarget] = useState(null); // { supp, period }
+
+  const requestDeleteSupp = useCallback((supp, period) => {
+    setDeleteTarget({ supp, period });
+  }, []);
+
+  const confirmDeleteSupp = useCallback(() => {
+    if (!deleteTarget || !routine) { setDeleteTarget(null); return; }
+    const { supp, period } = deleteTarget;
+    const next = { ...routine, [period]: (routine[period] || []).filter(x => x.id !== supp.id) };
+    setRoutine(next);
+    storage.set("neo-routine", JSON.stringify({ routine: next, personalMessage: aiMsg, warnings: warns }));
+    setDeleteTarget(null);
+  }, [deleteTarget, routine, aiMsg, warns]);
+
   const addSuppToRoutine = useCallback((product, period) => {
     if (!routine || !["morning", "afternoon", "night"].includes(period)) return "err";
     const name = (product.product_name || "").trim();
@@ -2237,6 +2390,16 @@ const confirmRegen = () => {
 
       {/* Milestone modal */}
       {milestone && <MilestoneModal days={milestone} lang={lang} onClose={() => setMilestone(null)} t={t} />}
+
+      {/* Delete supplement confirmation modal */}
+      {deleteTarget && (
+        <DeleteSuppModal
+          supp={deleteTarget.supp}
+          t={t}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={confirmDeleteSupp}
+        />
+      )}
 
       {/* Regen confirmation modal */}
       {showRegenConfirm && (
@@ -2456,6 +2619,8 @@ const confirmRegen = () => {
                       t={t}
                       readOnly={!isToday}
                       isLast={isLastNonEmpty}
+                      isRTL={isRTL}
+                      onDelete={isToday ? requestDeleteSupp : null}
                     />
                   );
                 })}

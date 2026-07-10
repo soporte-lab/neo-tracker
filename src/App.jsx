@@ -237,6 +237,14 @@ const flushHydrationQueue = () => {
   __nrSyncTimer = setTimeout(flushPendingPush, 100);
 };
 
+/* ───────────────── LOCAL DATE KEY ─────────────────
+   Clave de día en la zona horaria LOCAL del dispositivo (antes se usaba
+   toISOString = fecha UTC, y en América la app "cambiaba de día" por la
+   tarde: a las 17:00 PDT ya era mañana en UTC, la rutina se reseteaba y
+   los checks nocturnos caían en el día siguiente). */
+const localDateKey = (d = new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
 /* ───────────────── LANG DETECTION ───────────────── */
 const detectLang = () => {
   const supported = ["es", "en", "fr", "de", "pt", "it", "ea"];
@@ -603,7 +611,7 @@ function Sparkline({ history, days = 30, width = 70, height = 22 }) {
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      const k = d.toISOString().slice(0, 10);
+      const k = localDateKey(d);
       arr.push(history[k]?.completionRate ?? 0);
     }
     return arr;
@@ -1240,7 +1248,7 @@ function ProgressView({ history, streak, record, routine, t }) {
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      const k = d.toISOString().slice(0, 10);
+      const k = localDateKey(d);
       arr.push({ k, label: t.day_names[d.getDay()], rate: history[k]?.completionRate ?? null, isToday: i === 0 });
     }
     return arr;
@@ -1934,7 +1942,7 @@ export default function App() {
   const [aiMsg, setAiMsg] = useState(null);
   const [warns, setWarns] = useState([]);
   const [toast, setToast] = useState(null);
-  const [viewDate, setViewDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [viewDate, setViewDate] = useState(() => localDateKey());
   const [compactManual, setCompactManual] = useState(null);
   const [milestone, setMilestone] = useState(null);
   const [shownMilestones, setShownMilestones] = useState([]);
@@ -1942,7 +1950,7 @@ export default function App() {
   const [showRegenConfirm, setShowRegenConfirm] = useState(false);
   const [showRoutineInfo, setShowRoutineInfo] = useState(false);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateKey();
   const isToday = viewDate === today;
   const reminderRef = useRef(null);
   const completedRef = useRef(false);
@@ -2111,7 +2119,7 @@ export default function App() {
     for (let i = 0; i < 365; i++) {
       const d = new Date(n);
       d.setDate(d.getDate() - i);
-      const k = d.toISOString().slice(0, 10);
+      const k = localDateKey(d);
       const done = history[k]?.completedOnce || (history[k]?.completionRate >= 0.5);
       if (done) {
         s++;
@@ -2132,11 +2140,11 @@ export default function App() {
     const keys = Object.keys(history).sort();
     let longest = 0;
     if (keys.length) {
-      const first = new Date(keys[0]);
+      const first = new Date(keys[0] + "T12:00:00"); // mediodía local: evita off-by-one en tz negativas
       const last = new Date();
       let run = 0, graces = 0;
       for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
-        const k = d.toISOString().slice(0, 10);
+        const k = localDateKey(d);
         const done = history[k]?.completedOnce || (history[k]?.completionRate >= 0.5);
         if (done) {
           run++;
@@ -2341,7 +2349,7 @@ const confirmRegen = () => {
     const delta = dx > 0 ? (rtl ? 1 : -1) : (rtl ? -1 : 1);
     const d = new Date(viewDate + "T12:00:00");
     d.setDate(d.getDate() + delta);
-    const newKey = d.toISOString().slice(0, 10);
+    const newKey = localDateKey(d);
     if (newKey > today) return; // no future
     // Limit to last 30 days
     const limit = new Date(); limit.setDate(limit.getDate() - 30);

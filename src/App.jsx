@@ -852,7 +852,7 @@ function SuppCard({ supp, checked, onToggle, compact, dense, ultra, t, readOnly,
 }
 
 /* ───────────────── PERIOD SECTION ───────────────── */
-function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compact, dense, ultra, t, readOnly, isLast, onDelete, isRTL }) {
+function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compact, dense, ultra, t, readOnly, isLast, onDelete, isRTL, fillGap = 0 }) {
   const tone = C[period];
   if (!supplements.length) return null;
   const done = supplements.filter(s => checks[s.id]).length;
@@ -863,7 +863,7 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
     onMarkAll(period, !allDone);
   };
   return (
-    <div style={{ marginBottom: isLast ? 0 : (ultra ? 8 : dense ? 12 : compact ? 14 : 22) }}>
+    <div style={{ marginBottom: (isLast ? 0 : (ultra ? 8 : dense ? 12 : compact ? 14 : 22)) + (isLast ? 0 : fillGap) }}>
       <div
         onClick={handleHeaderClick}
         style={{
@@ -2251,26 +2251,40 @@ export default function App() {
   const dense = level >= 2;
   const ultra = level >= 3;
 
-  // Recalibración por época: el ajuste medido vuelve a 0 (pre-pintado, sin
-  // parpadeo) siempre que cambia el contexto de layout, y la medición vuelve
-  // a escalar solo lo necesario. Antes solo sabía subir y se quedaba pegado
-  // en niveles altos (hueco vacío bajo la lista).
-  useLayoutEffect(() => { setDensityBump(0); }, [totalCount, viewDate, view]);
+  // Reparto del hueco sobrante: cuando la lista cabe con holgura, el espacio
+  // libre se distribuye entre las franjas para llenar el 100% de la pantalla.
+  const [fillGap, setFillGap] = useState(0);
+
+  // Recalibración por época: densidad y reparto vuelven a 0 (pre-pintado,
+  // sin parpadeo) siempre que cambia el contexto de layout, y la medición
+  // vuelve a ajustar solo lo necesario.
+  useLayoutEffect(() => { setDensityBump(0); setFillGap(0); }, [totalCount, viewDate, view]);
   useEffect(() => {
-    const onResize = () => setDensityBump(0);
-    window.addEventListener("resize", onResize);
+    const recal = () => { setDensityBump(0); setFillGap(0); };
+    window.addEventListener("resize", recal);
     // Las fuentes web cambian las métricas del texto: recalibrar al cargar
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => setDensityBump(0)).catch(() => {});
+      document.fonts.ready.then(recal).catch(() => {});
     }
-    return () => window.removeEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", recal);
   }, []);
-  // Medición síncrona pre-pintado: ¿desborda la pantalla? → sube un nivel
+  // Medición síncrona pre-pintado:
+  //  · desborda → sube un nivel de densidad
+  //  · sobra    → reparte el hueco entre las franjas (una sola vez por época)
   useLayoutEffect(() => {
     if (appState !== "dashboard" || view !== "today") return;
     const overflow = document.documentElement.scrollHeight - window.innerHeight;
-    if (overflow > 4 && level < 3) setDensityBump(b => b + 1);
-  }, [appState, view, level, totalCount, viewDate]);
+    // Solo escalar densidad durante el asentamiento de la época (fillGap===0):
+    // si el usuario expande notas después, el contenido extra hace scroll normal
+    if (overflow > 4 && level < 3 && fillGap === 0) { setDensityBump(b => b + 1); return; }
+    if (overflow <= 4 && fillGap === 0 && routine) {
+      const slack = -overflow;
+      const slots = ["morning", "afternoon", "night"].filter(px => (routine[px] || []).length > 0).length;
+      if (slack > 10 && slots > 0) {
+        setFillGap(Math.min(34, Math.floor((slack - 4) / slots)));
+      }
+    }
+  }, [appState, view, level, totalCount, viewDate, fillGap, routine]);
 
   /* Handlers */
   const [deleteTarget, setDeleteTarget] = useState(null); // { supp, period }
@@ -2614,7 +2628,7 @@ const confirmRegen = () => {
 
                 {/* Streak pill */}
                 {streak > 0 && (
-                  <div style={{ display: "flex", alignItems: "center", marginBottom: ultra ? 8 : dense ? 10 : compact ? 12 : 22 }}>
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: (ultra ? 8 : dense ? 10 : compact ? 12 : 22) + fillGap }}>
                     <span style={{
                       display: "inline-flex", alignItems: "center", gap: 6,
                       padding: "5px 11px 5px 9px", borderRadius: 20,
@@ -2715,6 +2729,7 @@ const confirmRegen = () => {
                       readOnly={!isToday}
                       isLast={isLastNonEmpty}
                       isRTL={isRTL}
+                      fillGap={fillGap}
                       onDelete={isToday ? requestDeleteSupp : null}
                     />
                   );

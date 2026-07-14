@@ -2245,7 +2245,9 @@ export default function App() {
      "ultra", tipografía reducida) hasta que quepa todo sin scroll. */
   const totalCount = allSupps.length;
   const [densityBump, setDensityBump] = useState(0);
-  const baseLevel = totalCount >= 8 ? 2 : totalCount >= 5 ? 1 : (compactManual ? 1 : 0);
+  // Arranca SIEMPRE en el nivel más grande (normal); la medición pre-pintado
+  // baja solo lo necesario → la tipografía más grande que quepa en pantalla.
+  const baseLevel = compactManual ? 1 : 0;
   const level = Math.min(3, baseLevel + densityBump);
   const compact = level >= 1;
   const dense = level >= 2;
@@ -2255,6 +2257,16 @@ export default function App() {
   // libre se distribuye entre las franjas para llenar el 100% de la pantalla.
   const [fillGap, setFillGap] = useState(0);
   const contentRef = useRef(null);
+  // Reserva inferior: espacio que se deja libre al final (menú de navegación
+  // de WordPress superpuesto). Ajustable sin redeploy añadiendo &bottom=px a
+  // la URL del iframe en el shortcode.
+  const BOTTOM_RESERVE = (() => {
+    try {
+      const v = parseInt(new URLSearchParams(window.location.search).get("bottom") || "", 10);
+      if (!isNaN(v) && v >= 0 && v <= 300) return v;
+    } catch { /* ignore */ }
+    return 76;
+  })();
 
   // Recalibración por época: densidad y reparto vuelven a 0 (pre-pintado,
   // sin parpadeo) siempre que cambia el contexto de layout, y la medición
@@ -2280,7 +2292,7 @@ export default function App() {
     const contentBottom = el
       ? el.getBoundingClientRect().bottom + window.scrollY
       : document.documentElement.scrollHeight;
-    const overflow = contentBottom - window.innerHeight;
+    const overflow = contentBottom - (window.innerHeight - BOTTOM_RESERVE);
     // Solo escalar densidad durante el asentamiento de la época (fillGap===0):
     // si el usuario expande notas después, el contenido extra hace scroll normal
     if (overflow > 4 && level < 3 && fillGap === 0) { setDensityBump(b => b + 1); return; }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
 
 /* ───────────────── POSTMESSAGE BRIDGE (Fase 4) ───────────────── */
 /**
@@ -666,7 +666,7 @@ const Ring = ({ pct, size = 72, stroke = 6, showLabel = true }) => {
 };
 
 /* ───────────────── SUPPLEMENT CARD ───────────────── */
-function SuppCard({ supp, checked, onToggle, compact, dense, t, readOnly, onDelete, isRTL }) {
+function SuppCard({ supp, checked, onToggle, compact, dense, ultra, t, readOnly, onDelete, isRTL }) {
   const [exp, setExp] = useState(false);
   const [dragX, setDragX] = useState(0);
   const touch = useRef({ x: 0, y: 0, locked: null, moved: false });
@@ -723,7 +723,7 @@ function SuppCard({ supp, checked, onToggle, compact, dense, t, readOnly, onDele
   const hasBenefits = supp.benefits && supp.benefits.length > 0;
 
   return (
-    <div style={{ position: "relative", marginBottom: dense ? 5 : 8 }}>
+    <div style={{ position: "relative", marginBottom: ultra ? 4 : dense ? 5 : 8 }}>
       {/* Indicador de borrado revelado tras la card */}
       {onDelete && dragX !== 0 && (
         <div style={{
@@ -747,7 +747,7 @@ function SuppCard({ supp, checked, onToggle, compact, dense, t, readOnly, onDele
           background: checked ? C.surfaceDone : C.surface,
           border: `1px solid ${C.border}`,
           borderRadius: 14,
-          padding: dense ? "7px 10px" : compact ? "10px 12px" : "13px 14px",
+          padding: ultra ? "5px 9px" : dense ? "7px 10px" : compact ? "10px 12px" : "13px 14px",
           cursor: readOnly ? "default" : "pointer",
           transition: dragX !== 0 ? "none" : "all 0.2s",
           animation: "fadeUp 0.25s",
@@ -756,26 +756,26 @@ function SuppCard({ supp, checked, onToggle, compact, dense, t, readOnly, onDele
     >
       <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
         <div style={{
-          width: dense ? 19 : 22, height: dense ? 19 : 22, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+          width: ultra ? 17 : dense ? 19 : 22, height: ultra ? 17 : dense ? 19 : 22, borderRadius: "50%", flexShrink: 0, marginTop: 1,
           border: checked ? "none" : `1.5px solid ${C.borderStrong}`,
           background: checked ? C.brandGrad : C.surface,
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "all 0.2s",
           animation: checked ? "checkPop 0.3s" : "none"
         }}>
-          {checked && Icon.check(dense ? 10 : 12)}
+          {checked && Icon.check(ultra ? 9 : dense ? 10 : 12)}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
             <span style={{
               fontFamily: "Oswald,sans-serif",
               fontWeight: 600,
-              fontSize: dense ? 15 : 18,
+              fontSize: ultra ? 13.5 : dense ? 15 : 18,
               color: checked ? C.textMuted : C.text,
               textDecoration: checked ? "line-through" : "none"
             }}>{supp.name}</span>
             <span style={{
-              fontSize: 11,
+              fontSize: ultra ? 9.5 : 11,
               color: checked ? C.textGhost : C.textMuted,
               fontFamily: '"JetBrains Mono", ui-monospace, monospace',
               fontFeatureSettings: '"zero", "ss01"',
@@ -852,7 +852,7 @@ function SuppCard({ supp, checked, onToggle, compact, dense, t, readOnly, onDele
 }
 
 /* ───────────────── PERIOD SECTION ───────────────── */
-function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compact, dense, t, readOnly, isLast, onDelete, isRTL }) {
+function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compact, dense, ultra, t, readOnly, isLast, onDelete, isRTL }) {
   const tone = C[period];
   if (!supplements.length) return null;
   const done = supplements.filter(s => checks[s.id]).length;
@@ -863,12 +863,12 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
     onMarkAll(period, !allDone);
   };
   return (
-    <div style={{ marginBottom: isLast ? 0 : (dense ? 12 : compact ? 14 : 22) }}>
+    <div style={{ marginBottom: isLast ? 0 : (ultra ? 8 : dense ? 12 : compact ? 14 : 22) }}>
       <div
         onClick={handleHeaderClick}
         style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginBottom: dense ? 4 : compact ? 7 : 10, cursor: readOnly ? "default" : "pointer",
+          marginBottom: ultra ? 3 : dense ? 4 : compact ? 7 : 10, cursor: readOnly ? "default" : "pointer",
           padding: "4px 6px", margin: "-4px -6px 6px", borderRadius: 10,
           transition: "background 0.15s",
           userSelect: "none"
@@ -877,11 +877,11 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: dense ? 28 : 38, height: dense ? 28 : 38, borderRadius: dense ? 9 : 12, background: tone.bg, color: tone.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <SectionIcon period={period} size={dense ? 15 : 20} />
+          <div style={{ width: ultra ? 24 : dense ? 28 : 38, height: ultra ? 24 : dense ? 28 : 38, borderRadius: ultra ? 8 : dense ? 9 : 12, background: tone.bg, color: tone.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <SectionIcon period={period} size={ultra ? 13 : dense ? 15 : 20} />
           </div>
           <div>
-            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: dense ? 16 : 22, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
+            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: ultra ? 14 : dense ? 16 : 22, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
               {t[period]}
             </div>
             {!dense && <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{t[period + "_hint"]}</div>}
@@ -899,9 +899,9 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         </div>
       </div>
       {supplements.map(s => (
-        <SuppCard key={s.id} supp={s} checked={!!checks[s.id]} onToggle={onToggle} compact={compact} dense={dense} t={t} readOnly={readOnly} isRTL={isRTL} onDelete={onDelete ? (supp) => onDelete(supp, period) : null} />
+        <SuppCard key={s.id} supp={s} checked={!!checks[s.id]} onToggle={onToggle} compact={compact} dense={dense} ultra={ultra} t={t} readOnly={readOnly} isRTL={isRTL} onDelete={onDelete ? (supp) => onDelete(supp, period) : null} />
       ))}
-      {!isLast && <div style={{ height: 1, background: C.border, margin: dense ? "12px -20px 0" : compact ? "14px -20px 0" : "22px -20px 0" }} />}
+      {!isLast && <div style={{ height: 1, background: C.border, margin: ultra ? "8px -20px 0" : dense ? "12px -20px 0" : compact ? "14px -20px 0" : "22px -20px 0" }} />}
     </div>
   );
 }
@@ -2239,12 +2239,34 @@ export default function App() {
     }
   }, [streak, appState]);
 
-  /* Densidad automática: la lista intenta caber en una pantalla sin scroll.
-     ≤4 → normal · 5-7 → compacto · ≥8 → denso.
-     El toggle manual de Ajustes fuerza compacto como mínimo. */
+  /* Densidad automática Y medida: nivel base por nº de suplementos
+     (≤4 normal · 5-7 compacto · ≥8 denso) y, tras renderizar, se mide la
+     altura real contra la pantalla: si no cabe, sube un nivel (hasta
+     "ultra", tipografía reducida) hasta que quepa todo sin scroll. */
   const totalCount = allSupps.length;
-  const dense = totalCount >= 8;
-  const compact = dense || !!compactManual || totalCount >= 5;
+  const [densityBump, setDensityBump] = useState(0);
+  const baseLevel = totalCount >= 8 ? 2 : totalCount >= 5 ? 1 : (compactManual ? 1 : 0);
+  const level = Math.min(3, baseLevel + densityBump);
+  const compact = level >= 1;
+  const dense = level >= 2;
+  const ultra = level >= 3;
+
+  // Reset del ajuste medido cuando cambia la lista o el tamaño de pantalla
+  useEffect(() => { setDensityBump(0); }, [totalCount]);
+  useEffect(() => {
+    const onResize = () => setDensityBump(0);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  // Medición post-render: ¿desborda la pantalla?
+  useLayoutEffect(() => {
+    if (appState !== "dashboard" || view !== "today") return;
+    const id = requestAnimationFrame(() => {
+      const overflow = document.documentElement.scrollHeight - window.innerHeight;
+      if (overflow > 4 && level < 3) setDensityBump(b => b + 1);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [appState, view, level, totalCount, viewDate]);
 
   /* Handlers */
   const [deleteTarget, setDeleteTarget] = useState(null); // { supp, period }
@@ -2566,7 +2588,7 @@ const confirmRegen = () => {
                 )}
 
                 {/* HERO: date + swipe hint + ring */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, marginBottom: dense ? 8 : 14 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, marginBottom: ultra ? 5 : dense ? 8 : compact ? 10 : 14 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 10, color: C.textMuted, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500, marginBottom: 4 }}>
                       {eyebrowDate}
@@ -2583,12 +2605,12 @@ const confirmRegen = () => {
                   }}>
                     {Icon.chevLeft(12)} {t.swipe_hint} {Icon.chevRight(12)}
                   </div>
-                  <Ring pct={pct} size={dense ? 58 : 72} stroke={dense ? 5 : 6} />
+                  <Ring pct={pct} size={ultra ? 48 : dense ? 56 : compact ? 62 : 72} stroke={ultra ? 4.5 : dense ? 5 : compact ? 5.5 : 6} />
                 </div>
 
                 {/* Streak pill */}
                 {streak > 0 && (
-                  <div style={{ display: "flex", alignItems: "center", marginBottom: dense ? 12 : compact ? 14 : 22 }}>
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: ultra ? 8 : dense ? 10 : compact ? 12 : 22 }}>
                     <span style={{
                       display: "inline-flex", alignItems: "center", gap: 6,
                       padding: "5px 11px 5px 9px", borderRadius: 20,
@@ -2684,6 +2706,7 @@ const confirmRegen = () => {
                       onMarkAll={markAll}
                       compact={compact}
                       dense={dense}
+                      ultra={ultra}
                       t={t}
                       readOnly={!isToday}
                       isLast={isLastNonEmpty}

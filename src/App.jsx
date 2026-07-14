@@ -868,7 +868,7 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         onClick={handleHeaderClick}
         style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginBottom: ultra ? 3 : dense ? 4 : compact ? 7 : 10, cursor: readOnly ? "default" : "pointer",
+          marginBottom: 10, cursor: readOnly ? "default" : "pointer",
           padding: "4px 6px", margin: "-4px -6px 6px", borderRadius: 10,
           transition: "background 0.15s",
           userSelect: "none"
@@ -877,14 +877,14 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: ultra ? 24 : dense ? 28 : 38, height: ultra ? 24 : dense ? 28 : 38, borderRadius: ultra ? 8 : dense ? 9 : 12, background: tone.bg, color: tone.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <SectionIcon period={period} size={ultra ? 13 : dense ? 15 : 20} />
+          <div style={{ width: 38, height: 38, borderRadius: 12, background: tone.bg, color: tone.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <SectionIcon period={period} size={20} />
           </div>
           <div>
-            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: ultra ? 14 : dense ? 16 : 22, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
+            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 22, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
               {t[period]}
             </div>
-            {!dense && <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{t[period + "_hint"]}</div>}
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{t[period + "_hint"]}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

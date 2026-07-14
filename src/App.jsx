@@ -2254,6 +2254,7 @@ export default function App() {
   // Reparto del hueco sobrante: cuando la lista cabe con holgura, el espacio
   // libre se distribuye entre las franjas para llenar el 100% de la pantalla.
   const [fillGap, setFillGap] = useState(0);
+  const contentRef = useRef(null);
 
   // Recalibración por época: densidad y reparto vuelven a 0 (pre-pintado,
   // sin parpadeo) siempre que cambia el contexto de layout, y la medición
@@ -2273,7 +2274,13 @@ export default function App() {
   //  · sobra    → reparte el hueco entre las franjas (una sola vez por época)
   useLayoutEffect(() => {
     if (appState !== "dashboard" || view !== "today") return;
-    const overflow = document.documentElement.scrollHeight - window.innerHeight;
+    // Borde inferior REAL del contenido (documentElement.scrollHeight se
+    // clampa al alto del viewport y hacía indetectable el hueco sobrante)
+    const el = contentRef.current;
+    const contentBottom = el
+      ? el.getBoundingClientRect().bottom + window.scrollY
+      : document.documentElement.scrollHeight;
+    const overflow = contentBottom - window.innerHeight;
     // Solo escalar densidad durante el asentamiento de la época (fillGap===0):
     // si el usuario expande notas después, el contenido extra hace scroll normal
     if (overflow > 4 && level < 3 && fillGap === 0) { setDensityBump(b => b + 1); return; }
@@ -2281,7 +2288,7 @@ export default function App() {
       const slack = -overflow;
       const slots = ["morning", "afternoon", "night"].filter(px => (routine[px] || []).length > 0).length;
       if (slack > 10 && slots > 0) {
-        setFillGap(Math.min(34, Math.floor((slack - 4) / slots)));
+        setFillGap(Math.min(40, Math.floor((slack - 4) / slots)));
       }
     }
   }, [appState, view, level, totalCount, viewDate, fillGap, routine]);
@@ -2561,7 +2568,7 @@ const confirmRegen = () => {
         </div>
       )}
 
-      <div style={{ padding: "20px", paddingBottom: 24 }}>
+      <div ref={contentRef} style={{ padding: "20px", paddingBottom: 24 }}>
         {appState === "loading" && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
             <div style={{ width: 36, height: 36, border: `3px solid ${C.border}`, borderTop: `3px solid ${C.brand1}`, borderRadius: "50%", animation: "spin 1s linear infinite" }} />

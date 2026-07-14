@@ -2251,21 +2251,25 @@ export default function App() {
   const dense = level >= 2;
   const ultra = level >= 3;
 
-  // Reset del ajuste medido cuando cambia la lista o el tamaño de pantalla
-  useEffect(() => { setDensityBump(0); }, [totalCount]);
+  // Recalibración por época: el ajuste medido vuelve a 0 (pre-pintado, sin
+  // parpadeo) siempre que cambia el contexto de layout, y la medición vuelve
+  // a escalar solo lo necesario. Antes solo sabía subir y se quedaba pegado
+  // en niveles altos (hueco vacío bajo la lista).
+  useLayoutEffect(() => { setDensityBump(0); }, [totalCount, viewDate, view]);
   useEffect(() => {
     const onResize = () => setDensityBump(0);
     window.addEventListener("resize", onResize);
+    // Las fuentes web cambian las métricas del texto: recalibrar al cargar
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => setDensityBump(0)).catch(() => {});
+    }
     return () => window.removeEventListener("resize", onResize);
   }, []);
-  // Medición post-render: ¿desborda la pantalla?
+  // Medición síncrona pre-pintado: ¿desborda la pantalla? → sube un nivel
   useLayoutEffect(() => {
     if (appState !== "dashboard" || view !== "today") return;
-    const id = requestAnimationFrame(() => {
-      const overflow = document.documentElement.scrollHeight - window.innerHeight;
-      if (overflow > 4 && level < 3) setDensityBump(b => b + 1);
-    });
-    return () => cancelAnimationFrame(id);
+    const overflow = document.documentElement.scrollHeight - window.innerHeight;
+    if (overflow > 4 && level < 3) setDensityBump(b => b + 1);
   }, [appState, view, level, totalCount, viewDate]);
 
   /* Handlers */

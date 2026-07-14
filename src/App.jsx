@@ -666,7 +666,7 @@ const Ring = ({ pct, size = 72, stroke = 6, showLabel = true }) => {
 };
 
 /* ───────────────── SUPPLEMENT CARD ───────────────── */
-function SuppCard({ supp, checked, onToggle, compact, t, readOnly, onDelete, isRTL }) {
+function SuppCard({ supp, checked, onToggle, compact, dense, t, readOnly, onDelete, isRTL }) {
   const [exp, setExp] = useState(false);
   const [dragX, setDragX] = useState(0);
   const touch = useRef({ x: 0, y: 0, locked: null, moved: false });
@@ -723,7 +723,7 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly, onDelete, isR
   const hasBenefits = supp.benefits && supp.benefits.length > 0;
 
   return (
-    <div style={{ position: "relative", marginBottom: 8 }}>
+    <div style={{ position: "relative", marginBottom: dense ? 5 : 8 }}>
       {/* Indicador de borrado revelado tras la card */}
       {onDelete && dragX !== 0 && (
         <div style={{
@@ -747,7 +747,7 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly, onDelete, isR
           background: checked ? C.surfaceDone : C.surface,
           border: `1px solid ${C.border}`,
           borderRadius: 14,
-          padding: compact ? "10px 12px" : "13px 14px",
+          padding: dense ? "7px 10px" : compact ? "10px 12px" : "13px 14px",
           cursor: readOnly ? "default" : "pointer",
           transition: dragX !== 0 ? "none" : "all 0.2s",
           animation: "fadeUp 0.25s",
@@ -756,21 +756,21 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly, onDelete, isR
     >
       <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
         <div style={{
-          width: 22, height: 22, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+          width: dense ? 19 : 22, height: dense ? 19 : 22, borderRadius: "50%", flexShrink: 0, marginTop: 1,
           border: checked ? "none" : `1.5px solid ${C.borderStrong}`,
           background: checked ? C.brandGrad : C.surface,
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "all 0.2s",
           animation: checked ? "checkPop 0.3s" : "none"
         }}>
-          {checked && Icon.check(12)}
+          {checked && Icon.check(dense ? 10 : 12)}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
             <span style={{
               fontFamily: "Oswald,sans-serif",
               fontWeight: 600,
-              fontSize: 18,
+              fontSize: dense ? 15 : 18,
               color: checked ? C.textMuted : C.text,
               textDecoration: checked ? "line-through" : "none"
             }}>{supp.name}</span>
@@ -781,6 +781,16 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly, onDelete, isR
               fontFeatureSettings: '"zero", "ss01"',
               letterSpacing: "-0.01em"
             }}>{supp.dose}</span>
+            {dense && hasNotes && !exp && (
+              <button
+                onClick={e => { e.stopPropagation(); setExp(true); }}
+                style={{
+                  background: "none", border: "none", color: C.textGhost,
+                  fontSize: 10, cursor: "pointer", padding: 0, textDecoration: "underline",
+                  fontFamily: "Inter, sans-serif"
+                }}
+              >{t.more_info}</button>
+            )}
             {supp.frequency && supp.frequency !== "daily" && (
               <span style={{
                 fontSize: 9, padding: "2px 7px", borderRadius: 20,
@@ -815,7 +825,7 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly, onDelete, isR
             </div>
           )}
           {/* En modo compacto (sin brand/beneficios visibles) mostramos "Más info" en su propia línea */}
-          {!showExpanded && hasNotes && (
+          {!showExpanded && hasNotes && !dense && (
             <div style={{ marginTop: 4 }}>
               <button
                 onClick={e => { e.stopPropagation(); setExp(v => !v); }}
@@ -842,7 +852,7 @@ function SuppCard({ supp, checked, onToggle, compact, t, readOnly, onDelete, isR
 }
 
 /* ───────────────── PERIOD SECTION ───────────────── */
-function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compact, t, readOnly, isLast, onDelete, isRTL }) {
+function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compact, dense, t, readOnly, isLast, onDelete, isRTL }) {
   const tone = C[period];
   if (!supplements.length) return null;
   const done = supplements.filter(s => checks[s.id]).length;
@@ -853,12 +863,12 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
     onMarkAll(period, !allDone);
   };
   return (
-    <div style={{ marginBottom: isLast ? 0 : 22 }}>
+    <div style={{ marginBottom: isLast ? 0 : (dense ? 12 : 22) }}>
       <div
         onClick={handleHeaderClick}
         style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginBottom: 10, cursor: readOnly ? "default" : "pointer",
+          marginBottom: dense ? 4 : 10, cursor: readOnly ? "default" : "pointer",
           padding: "4px 6px", margin: "-4px -6px 6px", borderRadius: 10,
           transition: "background 0.15s",
           userSelect: "none"
@@ -867,14 +877,14 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 12, background: tone.bg, color: tone.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <SectionIcon period={period} size={20} />
+          <div style={{ width: dense ? 28 : 38, height: dense ? 28 : 38, borderRadius: dense ? 9 : 12, background: tone.bg, color: tone.icon, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <SectionIcon period={period} size={dense ? 15 : 20} />
           </div>
           <div>
-            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: 22, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
+            <div style={{ fontFamily: "Oswald,sans-serif", fontWeight: 700, fontSize: dense ? 16 : 22, color: tone.icon, letterSpacing: "0.01em", lineHeight: 1.15 }}>
               {t[period]}
             </div>
-            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{t[period + "_hint"]}</div>
+            {!dense && <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{t[period + "_hint"]}</div>}
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -889,9 +899,9 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
         </div>
       </div>
       {supplements.map(s => (
-        <SuppCard key={s.id} supp={s} checked={!!checks[s.id]} onToggle={onToggle} compact={compact} t={t} readOnly={readOnly} isRTL={isRTL} onDelete={onDelete ? (supp) => onDelete(supp, period) : null} />
+        <SuppCard key={s.id} supp={s} checked={!!checks[s.id]} onToggle={onToggle} compact={compact} dense={dense} t={t} readOnly={readOnly} isRTL={isRTL} onDelete={onDelete ? (supp) => onDelete(supp, period) : null} />
       ))}
-      {!isLast && <div style={{ height: 1, background: C.border, margin: "22px -20px 0" }} />}
+      {!isLast && <div style={{ height: 1, background: C.border, margin: dense ? "12px -20px 0" : "22px -20px 0" }} />}
     </div>
   );
 }
@@ -2229,9 +2239,12 @@ export default function App() {
     }
   }, [streak, appState]);
 
-  /* Auto compact mode */
+  /* Densidad automática: la lista intenta caber en una pantalla sin scroll.
+     ≤5 → normal · 6-7 → compacto · ≥8 → denso.
+     El toggle manual de Ajustes fuerza compacto como mínimo. */
   const totalCount = allSupps.length;
-  const compact = compactManual;
+  const dense = totalCount >= 8;
+  const compact = dense || !!compactManual || totalCount >= 6;
 
   /* Handlers */
   const [deleteTarget, setDeleteTarget] = useState(null); // { supp, period }
@@ -2553,7 +2566,7 @@ const confirmRegen = () => {
                 )}
 
                 {/* HERO: date + swipe hint + ring */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, marginBottom: 14 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, marginBottom: dense ? 8 : 14 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 10, color: C.textMuted, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500, marginBottom: 4 }}>
                       {eyebrowDate}
@@ -2570,12 +2583,12 @@ const confirmRegen = () => {
                   }}>
                     {Icon.chevLeft(12)} {t.swipe_hint} {Icon.chevRight(12)}
                   </div>
-                  <Ring pct={pct} size={72} stroke={6} />
+                  <Ring pct={pct} size={dense ? 58 : 72} stroke={dense ? 5 : 6} />
                 </div>
 
                 {/* Streak pill */}
                 {streak > 0 && (
-                  <div style={{ display: "flex", alignItems: "center", marginBottom: 22 }}>
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: dense ? 12 : 22 }}>
                     <span style={{
                       display: "inline-flex", alignItems: "center", gap: 6,
                       padding: "5px 11px 5px 9px", borderRadius: 20,
@@ -2670,6 +2683,7 @@ const confirmRegen = () => {
                       onToggle={toggle}
                       onMarkAll={markAll}
                       compact={compact}
+                      dense={dense}
                       t={t}
                       readOnly={!isToday}
                       isLast={isLastNonEmpty}

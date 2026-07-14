@@ -863,12 +863,12 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
     onMarkAll(period, !allDone);
   };
   return (
-    <div style={{ marginBottom: isLast ? 0 : (dense ? 12 : 22) }}>
+    <div style={{ marginBottom: isLast ? 0 : (dense ? 12 : compact ? 14 : 22) }}>
       <div
         onClick={handleHeaderClick}
         style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginBottom: dense ? 4 : 10, cursor: readOnly ? "default" : "pointer",
+          marginBottom: dense ? 4 : compact ? 7 : 10, cursor: readOnly ? "default" : "pointer",
           padding: "4px 6px", margin: "-4px -6px 6px", borderRadius: 10,
           transition: "background 0.15s",
           userSelect: "none"
@@ -901,7 +901,7 @@ function PeriodSection({ period, supplements, checks, onToggle, onMarkAll, compa
       {supplements.map(s => (
         <SuppCard key={s.id} supp={s} checked={!!checks[s.id]} onToggle={onToggle} compact={compact} dense={dense} t={t} readOnly={readOnly} isRTL={isRTL} onDelete={onDelete ? (supp) => onDelete(supp, period) : null} />
       ))}
-      {!isLast && <div style={{ height: 1, background: C.border, margin: dense ? "12px -20px 0" : "22px -20px 0" }} />}
+      {!isLast && <div style={{ height: 1, background: C.border, margin: dense ? "12px -20px 0" : compact ? "14px -20px 0" : "22px -20px 0" }} />}
     </div>
   );
 }
@@ -2240,11 +2240,11 @@ export default function App() {
   }, [streak, appState]);
 
   /* Densidad automática: la lista intenta caber en una pantalla sin scroll.
-     ≤5 → normal · 6-7 → compacto · ≥8 → denso.
+     ≤4 → normal · 5-7 → compacto · ≥8 → denso.
      El toggle manual de Ajustes fuerza compacto como mínimo. */
   const totalCount = allSupps.length;
   const dense = totalCount >= 8;
-  const compact = dense || !!compactManual || totalCount >= 6;
+  const compact = dense || !!compactManual || totalCount >= 5;
 
   /* Handlers */
   const [deleteTarget, setDeleteTarget] = useState(null); // { supp, period }
@@ -2521,7 +2521,7 @@ const confirmRegen = () => {
         </div>
       )}
 
-      <div style={{ padding: "20px", paddingBottom: 40 }}>
+      <div style={{ padding: "20px", paddingBottom: 24 }}>
         {appState === "loading" && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
             <div style={{ width: 36, height: 36, border: `3px solid ${C.border}`, borderTop: `3px solid ${C.brand1}`, borderRadius: "50%", animation: "spin 1s linear infinite" }} />
@@ -2588,7 +2588,7 @@ const confirmRegen = () => {
 
                 {/* Streak pill */}
                 {streak > 0 && (
-                  <div style={{ display: "flex", alignItems: "center", marginBottom: dense ? 12 : 22 }}>
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: dense ? 12 : compact ? 14 : 22 }}>
                     <span style={{
                       display: "inline-flex", alignItems: "center", gap: 6,
                       padding: "5px 11px 5px 9px", borderRadius: 20,

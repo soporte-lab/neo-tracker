@@ -821,42 +821,49 @@ export default function App() {
 /** Papel doblado en cuartos que se despliega y revela el texto manuscrito. */
 function Paper({ text, label, C }) {
   const [epoch, setEpoch] = useState(1); // re-monta la animación al tocar
+  // Textura de grano de papel (ruido fractal SVG inline, muy sutil)
+  const grain = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.38 0 0 0 0 0.28 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
   return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 10.5, color: C.textMuted, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 10.5, color: C.textMuted, marginBottom: 8, textAlign: "center" }}>{label}</div>
       <div
         key={epoch}
         onClick={() => { haptic(8); setEpoch(e => e + 1); }}
         title={label}
         style={{
           position: "relative", cursor: "pointer",
-          background: "linear-gradient(180deg,#fefdf8,#faf8f0)",
-          border: "1px solid #ece8da", borderRadius: 6,
-          padding: "14px 16px", margin: "2px 4px 6px",
+          width: 190, minHeight: 160, boxSizing: "border-box",
+          margin: "2px auto 8px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          border: "1px solid #ece8da", borderRadius: 5,
+          padding: "18px 16px",
           transformOrigin: "28% 22%",
           animation: "nrmUnfold 1.05s cubic-bezier(0.22,0.9,0.3,1) both",
           boxShadow: "0 3px 10px rgba(26,34,64,0.10)",
-          // Marcas de doblez en cruz
+          // Capas: grano de papel + dobleces en cruz + base
           backgroundImage: `
-            linear-gradient(180deg,#fefdf8,#faf8f0),
-            linear-gradient(to right, transparent calc(50% - 0.5px), rgba(120,110,80,0.14) 50%, transparent calc(50% + 0.5px)),
-            linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(120,110,80,0.12) 50%, transparent calc(50% + 0.5px))
-          `,
-          backgroundBlendMode: "normal, multiply, multiply"
+            ${grain},
+            linear-gradient(to right, transparent calc(50% - 0.5px), rgba(120,110,80,0.16) 50%, transparent calc(50% + 0.5px)),
+            linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(120,110,80,0.13) 50%, transparent calc(50% + 0.5px)),
+            linear-gradient(160deg,#fefdf8 0%,#faf7ee 55%,#f5f1e3 100%)
+          `
         }}
       >
         {/* Esquina doblada */}
         <div style={{
           position: "absolute", top: 0, insetInlineEnd: 0, width: 0, height: 0,
-          borderStyle: "solid", borderWidth: "0 14px 14px 0",
-          borderColor: `transparent #ece8da transparent transparent`,
-          borderRadius: "0 6px 0 0"
+          borderStyle: "solid", borderWidth: "0 15px 15px 0",
+          borderColor: `transparent #e6e1cf transparent transparent`,
+          borderRadius: "0 5px 0 0",
+          filter: "drop-shadow(-1px 1px 1px rgba(120,110,80,0.18))"
         }} />
         <div style={{
           fontFamily: "'Caveat', cursive",
-          fontWeight: 600, fontSize: 19, lineHeight: 1.25,
-          color: "#33406e",
-          transform: "rotate(-0.8deg)",
+          fontWeight: 600, fontSize: 20, lineHeight: 1.25,
+          color: "#33406e", textAlign: "center",
+          transform: "rotate(-1.2deg)",
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+          overflow: "hidden",
           animation: "nrmWrite 0.9s ease-out 0.85s both"
         }}>
           {text}
@@ -956,7 +963,9 @@ function ReleaseCard({ rel, t, C, oswald, entry, daysActive, onToggle, onMantra,
           <div style={{ fontSize: 10, color: C.textMuted, fontFamily: oswald, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 3 }}>
             {rel.type === "belief" ? t.release_type_belief : t.release_type_effect} · {daysActive} {t.days_active}
           </div>
-          <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text, lineHeight: 1.4 }}>{rel.text}</div>
+          {!useGlass && (
+            <div style={{ fontSize: 14.5, fontWeight: 600, color: C.text, lineHeight: 1.4 }}>{rel.text}</div>
+          )}
         </div>
         <button onClick={onClose} title={t.close_release} style={{
           border: "none", background: "transparent", color: C.textGhost,

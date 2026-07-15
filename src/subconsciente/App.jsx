@@ -207,7 +207,7 @@ const T = {
     iras_title: "Expectativas realistas (IRAS)",
     iras_body: "Intención · Repetición · Acción · Sostenida. Plazos orientativos de regeneración: epidermis ~1 mes · órganos 3-6 meses · hígado 4-15 meses · cabello 10-20 meses · transformación global 10-12 meses · huesos 4-7 años. Tu subconsciente aplica un filtro de seguridad: «llevo años ejecutando este proceso, ¿estás seguro? te doy tiempo para que decidas con claridad». La constancia es la clave, no la intensidad.",
     /* Método / reglas */
-    method_title: "El método (Módulo 2)",
+    method_title: "El método",
     method_glass_title: "Vasos de cristal",
     method_glass_rules: [
       "Vaso de cristal o vidrio transparente (nunca plástico, ni de chupito).",
@@ -1185,35 +1185,114 @@ function ProgressView({ t, C, oswald, Card, releases, history, streak, dayComple
 }
 
 function MethodView({ t, C, oswald, Card }) {
-  const Section = ({ title, children }) => (
-    <Card style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 10, fontFamily: oswald, textTransform: "uppercase", letterSpacing: "0.04em" }}>{title}</div>
-      {children}
-    </Card>
-  );
+  const [open, setOpen] = useState("glass"); // primera sección abierta por defecto
+
+  /* Iconos de línea por sección (mismo trazo 1.8 que el resto de la app) */
+  const SIcon = {
+    // Vaso con agua animada (la onda sube y baja suavemente)
+    glass: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 3h12l-1.5 18h-9L6 3z" />
+        <path d="M7.6 11c1.5 1 3 .9 4.4 0s2.9-1 4.4 0" opacity="0.9">
+          <animateTransform attributeName="transform" type="translate" values="0 0; 0 -1.4; 0 0" dur="2.6s" repeatCount="indefinite" />
+        </path>
+      </svg>
+    ),
+    // Corazón con latido
+    mantra: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3.4 1-4.5 2.5C10.9 4 9.3 3 7.5 3A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7 7-7z">
+          <animateTransform attributeName="transform" type="scale" values="1;1.06;1" additive="sum" dur="1.8s" repeatCount="indefinite" />
+        </path>
+      </svg>
+    ),
+    // Doble hélice ADN
+    adn: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 3c0 4 8 4 8 8s-8 4-8 8" />
+        <path d="M16 3c0 4-8 4-8 8s8 4 8 8" />
+        <path d="M9 6.5h6M9 17.5h6M9.5 12h5" />
+      </svg>
+    ),
+    // Escudo/onda para resistencias
+    resist: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6l8-3z" />
+        <path d="M8.5 12c1.2 1 2.3.9 3.5 0s2.3-1 3.5 0" />
+      </svg>
+    )
+  };
+
   const Rule = ({ children }) => (
     <div style={{ display: "flex", gap: 8, marginBottom: 8, fontSize: 12.5, lineHeight: 1.55, color: C.textDim }}>
       <span style={{ color: C.brand2, flexShrink: 0, marginTop: 1 }}>●</span>
       <span>{children}</span>
     </div>
   );
+
+  const Section = ({ id, title, icon, grad, children }) => {
+    const isOpen = open === id;
+    return (
+      <div style={{
+        background: C.surface, border: `1px solid ${isOpen ? C.mind.border : C.border}`,
+        borderRadius: 16, marginBottom: 12, overflow: "hidden",
+        boxShadow: isOpen ? "0 6px 20px rgba(83,74,183,0.10)" : "0 4px 16px rgba(26,34,64,0.05)",
+        transition: "box-shadow 0.25s, border-color 0.25s"
+      }}>
+        <button onClick={() => { haptic(8); setOpen(isOpen ? null : id); }} style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 12,
+          padding: "14px 16px", border: "none", background: "transparent",
+          cursor: "pointer", textAlign: "start"
+        }}>
+          <span style={{
+            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: grad, color: "#fff",
+            boxShadow: isOpen ? "0 4px 12px rgba(26,34,64,0.18)" : "none",
+            transition: "box-shadow 0.25s"
+          }}>{icon}</span>
+          <span style={{
+            flex: 1, fontSize: 13, fontWeight: 700, color: C.text,
+            fontFamily: oswald, textTransform: "uppercase", letterSpacing: "0.04em"
+          }}>{title}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.textMuted} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s", flexShrink: 0 }}>
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+        <div style={{
+          display: "grid", gridTemplateRows: isOpen ? "1fr" : "0fr",
+          transition: "grid-template-rows 0.3s ease"
+        }}>
+          <div style={{ overflow: "hidden" }}>
+            <div style={{ padding: "2px 16px 16px" }}>{children}</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div style={{ animation: "fadeIn 0.25s" }}>
       <h2 style={{ fontFamily: oswald, fontSize: 20, fontWeight: 600, margin: "0 0 16px", textTransform: "uppercase", letterSpacing: "0.02em" }}>{t.method_title}</h2>
 
-      <Section title={t.method_glass_title}>
+      <Section id="glass" title={t.method_glass_title} icon={SIcon.glass}
+        grad="linear-gradient(135deg,#0f6e56,#5DCAA5)">
         {t.method_glass_rules.map((r, i) => <Rule key={i}>{r}</Rule>)}
       </Section>
 
-      <Section title={t.method_mantra_title}>
+      <Section id="mantra" title={t.method_mantra_title} icon={SIcon.mantra}
+        grad="linear-gradient(135deg,#534ab7,#8f87e8)">
         {t.method_mantra_rules.map((r, i) => <Rule key={i}>{r}</Rule>)}
       </Section>
 
-      <Section title={t.method_adn_title}>
+      <Section id="adn" title={t.method_adn_title} icon={SIcon.adn}
+        grad="linear-gradient(135deg,#b7791f,#e2b25e)">
         <div style={{ fontSize: 12.5, lineHeight: 1.65, color: C.textDim }}>{t.method_adn_body}</div>
       </Section>
 
-      <Section title={t.method_resist_title}>
+      <Section id="resist" title={t.method_resist_title} icon={SIcon.resist}
+        grad="linear-gradient(135deg,#993c1d,#d4795a)">
         <div style={{ fontSize: 12.5, lineHeight: 1.65, color: C.textDim }}>{t.method_resist_body}</div>
       </Section>
 

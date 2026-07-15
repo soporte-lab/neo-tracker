@@ -316,13 +316,19 @@ const injectFonts = () => {
   if (document.getElementById("nrm-fonts")) return;
   const l = document.createElement("link");
   l.id = "nrm-fonts"; l.rel = "stylesheet";
-  l.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Almarai:wght@400;700&display=swap";
+  l.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Almarai:wght@400;700&family=Caveat:wght@500;600&display=swap";
   document.head.appendChild(l);
   const s = document.createElement("style");
   s.textContent = `
     @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
     @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 8px) } to { opacity: 1; transform: translate(-50%, 0) } }
     @keyframes spin { to { transform: rotate(360deg) } }
+    @keyframes nrmUnfold {
+      0%   { transform: perspective(700px) rotateX(-72deg) scaleY(0.52) scaleX(0.52); box-shadow: 0 14px 22px rgba(26,34,64,0.22) }
+      55%  { transform: perspective(700px) rotateX(0deg)   scaleY(1)    scaleX(0.52); box-shadow: 0 8px 16px rgba(26,34,64,0.14) }
+      100% { transform: perspective(700px) rotateX(0deg)   scaleY(1)    scaleX(1);    box-shadow: 0 3px 10px rgba(26,34,64,0.10) }
+    }
+    @keyframes nrmWrite { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0 -4% 0 0) } }
     button { -webkit-tap-highlight-color: transparent }
     textarea, input { font-family: inherit }
   `;
@@ -812,6 +818,55 @@ export default function App() {
 
 /* ───────────────── COMPONENTES ───────────────── */
 
+/** Papel doblado en cuartos que se despliega y revela el texto manuscrito. */
+function Paper({ text, label, C }) {
+  const [epoch, setEpoch] = useState(1); // re-monta la animación al tocar
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 10.5, color: C.textMuted, marginBottom: 6 }}>{label}</div>
+      <div
+        key={epoch}
+        onClick={() => { haptic(8); setEpoch(e => e + 1); }}
+        title={label}
+        style={{
+          position: "relative", cursor: "pointer",
+          background: "linear-gradient(180deg,#fefdf8,#faf8f0)",
+          border: "1px solid #ece8da", borderRadius: 6,
+          padding: "14px 16px", margin: "2px 4px 6px",
+          transformOrigin: "28% 22%",
+          animation: "nrmUnfold 1.05s cubic-bezier(0.22,0.9,0.3,1) both",
+          boxShadow: "0 3px 10px rgba(26,34,64,0.10)",
+          // Marcas de doblez en cruz
+          backgroundImage: `
+            linear-gradient(180deg,#fefdf8,#faf8f0),
+            linear-gradient(to right, transparent calc(50% - 0.5px), rgba(120,110,80,0.14) 50%, transparent calc(50% + 0.5px)),
+            linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(120,110,80,0.12) 50%, transparent calc(50% + 0.5px))
+          `,
+          backgroundBlendMode: "normal, multiply, multiply"
+        }}
+      >
+        {/* Esquina doblada */}
+        <div style={{
+          position: "absolute", top: 0, insetInlineEnd: 0, width: 0, height: 0,
+          borderStyle: "solid", borderWidth: "0 14px 14px 0",
+          borderColor: `transparent #ece8da transparent transparent`,
+          borderRadius: "0 6px 0 0"
+        }} />
+        <div style={{
+          fontFamily: "'Caveat', cursive",
+          fontWeight: 600, fontSize: 19, lineHeight: 1.25,
+          color: "#33406e",
+          transform: "rotate(-0.8deg)",
+          animation: "nrmWrite 0.9s ease-out 0.85s both"
+        }}>
+          {text}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function RemindersCard({ t, C, oswald, rems, onChange }) {
   const Row = ({ slot, label }) => {
     const r = rems[slot] || { time: slot === "am" ? "08:00" : "21:00", enabled: true };
@@ -920,9 +975,7 @@ function ReleaseCard({ rel, t, C, oswald, entry, daysActive, onToggle, onMantra,
 
       {useGlass && (
         <>
-          <div style={{ fontSize: 10.5, color: C.textMuted, marginBottom: 6 }}>
-            {t.glass_paper} <i>«{rel.text}»</i>
-          </div>
+          <Paper text={rel.text} label={t.glass_paper} C={C} />
           <div style={{ display: "flex", gap: 8, marginBottom: useMantra ? 12 : 0 }}>
             <CheckBtn slot="am" label={t.glass_am} palette={C.am} />
             <CheckBtn slot="pm" label={t.glass_pm} palette={C.pm} />

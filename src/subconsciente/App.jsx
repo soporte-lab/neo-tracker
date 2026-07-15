@@ -324,9 +324,18 @@ const injectFonts = () => {
     @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 8px) } to { opacity: 1; transform: translate(-50%, 0) } }
     @keyframes spin { to { transform: rotate(360deg) } }
     @keyframes nrmUnfold {
-      0%   { transform: perspective(700px) rotateX(-72deg) scaleY(0.52) scaleX(0.52); box-shadow: 0 14px 22px rgba(26,34,64,0.22) }
-      55%  { transform: perspective(700px) rotateX(0deg)   scaleY(1)    scaleX(0.52); box-shadow: 0 8px 16px rgba(26,34,64,0.14) }
-      100% { transform: perspective(700px) rotateX(0deg)   scaleY(1)    scaleX(1);    box-shadow: 0 3px 10px rgba(26,34,64,0.10) }
+      0%   { transform: scaleY(0.5) scaleX(0.5); box-shadow: 0 12px 20px rgba(26,34,64,0.25) }
+      48%  { transform: scaleY(1)   scaleX(0.5); box-shadow: 0 8px 16px rgba(26,34,64,0.16) }
+      52%  { transform: scaleY(1)   scaleX(0.5) }
+      100% { transform: scaleY(1)   scaleX(1);   box-shadow: 0 3px 10px rgba(26,34,64,0.10) }
+    }
+    @keyframes nrmFlapH {
+      0%       { transform: rotateX(-179deg) }
+      48%,100% { transform: rotateX(0deg) }
+    }
+    @keyframes nrmFlapV {
+      0%,52%   { transform: rotateY(179deg) }
+      100%     { transform: rotateY(0deg) }
     }
     @keyframes nrmWrite { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0 -4% 0 0) } }
     button { -webkit-tap-highlight-color: transparent }
@@ -818,55 +827,84 @@ export default function App() {
 
 /* ───────────────── COMPONENTES ───────────────── */
 
-/** Papel doblado en cuartos que se despliega y revela el texto manuscrito. */
+/** Papel doblado en cuartos: se desdobla con dos solapas 3D reales (abajo y derecha). */
 function Paper({ text, label, C }) {
   const [epoch, setEpoch] = useState(1); // re-monta la animación al tocar
+  const DUR = 1.3; // duración total del desdoblado (s)
+
   // Textura de grano de papel (ruido fractal SVG inline, muy sutil)
   const grain = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.38 0 0 0 0 0.28 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
+  const paperBase = `${grain}, linear-gradient(160deg,#fefdf8 0%,#faf7ee 55%,#f3efe0 100%)`;
+  // Reverso de las solapas: papel algo más oscuro, sombreado hacia el pliegue
+  const flapBack = (dir) => ({
+    position: "absolute", inset: 0, borderRadius: 4,
+    backgroundImage: `${grain}, linear-gradient(${dir},rgba(120,110,80,0.22) 0%,rgba(120,110,80,0.06) 45%,rgba(255,255,255,0) 100%), linear-gradient(160deg,#f6f2e6,#ece7d4)`,
+    transform: dir.includes("bottom") ? "rotateX(180deg)" : "rotateY(180deg)",
+    backfaceVisibility: "hidden",
+    border: "1px solid #e3ddc8", boxSizing: "border-box",
+    boxShadow: "0 6px 14px rgba(26,34,64,0.18)"
+  });
+
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ fontSize: 10.5, color: C.textMuted, marginBottom: 8, textAlign: "center" }}>{label}</div>
-      <div
-        key={epoch}
-        onClick={() => { haptic(8); setEpoch(e => e + 1); }}
-        title={label}
-        style={{
+      <div key={epoch} style={{ perspective: 900, width: 240, margin: "0 auto" }}
+        onClick={() => { haptic(8); setEpoch(e => e + 1); }} title={label}>
+        <div style={{
           position: "relative", cursor: "pointer",
-          width: 190, minHeight: 160, boxSizing: "border-box",
-          margin: "2px auto 8px",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          width: 240, height: 205, boxSizing: "border-box",
+          transformOrigin: "top left",
+          transformStyle: "preserve-3d",
+          animation: `nrmUnfold ${DUR}s ease-in-out both`,
           border: "1px solid #ece8da", borderRadius: 5,
-          padding: "18px 16px",
-          transformOrigin: "28% 22%",
-          animation: "nrmUnfold 1.05s cubic-bezier(0.22,0.9,0.3,1) both",
-          boxShadow: "0 3px 10px rgba(26,34,64,0.10)",
-          // Capas: grano de papel + dobleces en cruz + base
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "20px 18px",
+          // Capas del papel abierto: grano + dobleces en cruz + base
           backgroundImage: `
             ${grain},
-            linear-gradient(to right, transparent calc(50% - 0.5px), rgba(120,110,80,0.16) 50%, transparent calc(50% + 0.5px)),
-            linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(120,110,80,0.13) 50%, transparent calc(50% + 0.5px)),
+            linear-gradient(to right, transparent calc(50% - 0.5px), rgba(120,110,80,0.18) 50%, transparent calc(50% + 0.5px)),
+            linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(120,110,80,0.15) 50%, transparent calc(50% + 0.5px)),
             linear-gradient(160deg,#fefdf8 0%,#faf7ee 55%,#f5f1e3 100%)
-          `
-        }}
-      >
-        {/* Esquina doblada */}
-        <div style={{
-          position: "absolute", top: 0, insetInlineEnd: 0, width: 0, height: 0,
-          borderStyle: "solid", borderWidth: "0 15px 15px 0",
-          borderColor: `transparent #e6e1cf transparent transparent`,
-          borderRadius: "0 5px 0 0",
-          filter: "drop-shadow(-1px 1px 1px rgba(120,110,80,0.18))"
-        }} />
-        <div style={{
-          fontFamily: "'Caveat', cursive",
-          fontWeight: 600, fontSize: 20, lineHeight: 1.25,
-          color: "#33406e", textAlign: "center",
-          transform: "rotate(-1.2deg)",
-          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-          animation: "nrmWrite 0.9s ease-out 0.85s both"
+          `,
+          // Sombreado suave permanente junto a los pliegues (papel que estuvo doblado)
+          boxShadow: "inset 0 0 22px rgba(120,110,80,0.06)"
         }}>
-          {text}
+          {/* Solapa inferior: primer desdoblado (rotateX sobre el pliegue central) */}
+          <div style={{
+            position: "absolute", left: 0, right: 0, top: "50%", height: "50%",
+            transformOrigin: "top center", transformStyle: "preserve-3d",
+            animation: `nrmFlapH ${DUR}s ease-in-out both`, pointerEvents: "none"
+          }}>
+            <div style={flapBack("to bottom")} />
+          </div>
+          {/* Solapa derecha: segundo desdoblado (rotateY sobre el pliegue vertical) */}
+          <div style={{
+            position: "absolute", top: 0, bottom: 0, left: "50%", width: "50%",
+            transformOrigin: "center left", transformStyle: "preserve-3d",
+            animation: `nrmFlapV ${DUR}s ease-in-out both`, pointerEvents: "none"
+          }}>
+            <div style={flapBack("to right")} />
+          </div>
+          {/* Esquina doblada */}
+          <div style={{
+            position: "absolute", top: 0, right: 0, width: 0, height: 0,
+            borderStyle: "solid", borderWidth: "0 16px 16px 0",
+            borderColor: "transparent #e6e1cf transparent transparent",
+            borderRadius: "0 5px 0 0",
+            filter: "drop-shadow(-1px 1px 1px rgba(120,110,80,0.2))"
+          }} />
+          {/* Texto manuscrito: aparece cuando el papel termina de abrirse */}
+          <div style={{
+            fontFamily: "'Caveat', cursive",
+            fontWeight: 600, fontSize: 22, lineHeight: 1.28,
+            color: "#33406e", textAlign: "center",
+            transform: "rotate(-1.2deg)",
+            display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            animation: `nrmWrite 0.9s ease-out ${DUR + 0.1}s both`
+          }}>
+            {text}
+          </div>
         </div>
       </div>
     </div>

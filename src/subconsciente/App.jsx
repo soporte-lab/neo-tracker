@@ -73,7 +73,8 @@ const bridge = (() => {
 const SYNCED_KEY_MAP = {
   "nrm-profile": "profile",
   "nrm-releases": "releases",
-  "nrm-history": "history"
+  "nrm-history": "history",
+  "nrm-reminders": "reminders"
 };
 let __syncTimer = null;
 let __syncPending = {};
@@ -237,7 +238,10 @@ const T = {
     toast_created: "Liberación activada. Prepara el vaso y el papel: comenzar lleva menos de 5 minutos.",
     toast_closed: "Liberación cerrada. Se ha liberado un espacio.",
     toast_day_done: "Has atendido todas tus liberaciones de hoy.",
-    settings_note: "Los recordatorios push (vaciado mañana/noche) se activan desde la página del curso, igual que en Rutinas.",
+    rem_title: "Recordatorios de vaciado",
+    rem_hint: "Recibirás una notificación a la hora que elijas para vaciar y rellenar tus vasos.",
+    rem_am: "Vaciado de la mañana",
+    rem_pm: "Vaciado de la noche",
     loading: "Cargando…"
   }
 };
@@ -379,6 +383,11 @@ export default function App() {
   const [profile, setProfile] = useState(null);        // { testAnswers, detectedRoots, createdAt }
   const [releases, setReleases] = useState([]);        // [{ id, type, text, tool, createdAt, status, pausedAt, closedAt, closedReason }]
   const [history, setHistory] = useState({});          // { "YYYY-MM-DD": { relId: { am, pm, mantraMin } } }
+  const [rems, setRems] = useState({
+    am: { time: "08:00", enabled: true },
+    pm: { time: "21:00", enabled: true },
+    tz: (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC"
+  });
   const [toast, setToast] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [closeTarget, setCloseTarget] = useState(null);
@@ -403,12 +412,24 @@ export default function App() {
       const pR = storage.get("nrm-profile");
       const rR = storage.get("nrm-releases");
       const hR = storage.get("nrm-history");
+      const remR = storage.get("nrm-reminders");
       const localProfile = pR ? JSON.parse(pR.value) : null;
       const localReleases = rR ? JSON.parse(rR.value) : [];
       const localHistory = hR ? JSON.parse(hR.value) : {};
       if (localProfile) setProfile(localProfile);
       if (localReleases.length) setReleases(localReleases);
       if (Object.keys(localHistory).length) setHistory(localHistory);
+      if (remR) {
+        try {
+          const parsed = JSON.parse(remR.value);
+          const currentTz = (typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC") || "UTC";
+          if (parsed.tz !== currentTz) {
+            parsed.tz = currentTz;
+            storage.set("nrm-reminders", JSON.stringify(parsed));
+          }
+          setRems(parsed);
+        } catch {}
+      }
       setAppState((localProfile || localReleases.length) ? "dashboard" : "welcome");
 
       const ok = await bridge.handshake();
@@ -427,6 +448,7 @@ export default function App() {
             apply("profile", "nrm-profile", setProfile, null);
             apply("releases", "nrm-releases", setReleases, []);
             apply("history", "nrm-history", setHistory, {});
+            apply("reminders", "nrm-reminders", setRems, null);
           }
         } catch {}
       }
@@ -439,6 +461,7 @@ export default function App() {
   const saveReleases = (next) => { setReleases(next); storage.set("nrm-releases", JSON.stringify(next)); };
   const saveHistory = (next) => { setHistory(next); storage.set("nrm-history", JSON.stringify(next)); };
   const saveProfile = (p) => { setProfile(p); storage.set("nrm-profile", JSON.stringify(p)); };
+  const saveRems = (next) => { setRems(next); storage.set("nrm-reminders", JSON.stringify(next)); };
 
   /* ── Racha ── */
   const active = releases.filter(r => r.status === "active");
@@ -762,9 +785,7 @@ export default function App() {
                   {Icon.plus(15)} {t.release_new} ({active.length}/5)
                 </button>
 
-                <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, marginTop: 14, textAlign: "center" }}>
-                  {t.settings_note}
-                </div>
+                <RemindersCard t={t} C={C} oswald={oswald} rems={rems} onChange={saveRems} />
               </div>
             )}
 
@@ -785,6 +806,57 @@ export default function App() {
 }
 
 /* ───────────────── COMPONENTES ───────────────── */
+
+function RemindersCard({ t, C, oswald, rems, onChange }) {
+  const Row = ({ slot, label }) => {
+    const r = rems[slot] || { time: slot === "am" ? "08:00" : "21:00", enabled: true };
+    const set = (patch) => onChange({ ...rems, [slot]: { ...r, ...patch } });
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: `1px solid ${C.border}` }}>
+        <div style={{ flex: 1, fontSize: 13, color: r.enabled ? C.text : C.textGhost, fontWeight: 500 }}>{label}</div>
+        <input
+          type="time"
+          value={r.time}
+          disabled={!r.enabled}
+          onChange={(e) => e.target.value && set({ time: e.target.value })}
+          style={{
+            border: `1px solid ${C.borderStrong}`, borderRadius: 10, padding: "7px 10px",
+            fontSize: 13, color: r.enabled ? C.text : C.textGhost, background: C.bgSoft,
+            outline: "none", opacity: r.enabled ? 1 : 0.55
+          }}
+        />
+        <button
+          onClick={() => { haptic(8); set({ enabled: !r.enabled }); }}
+          aria-label={label}
+          style={{
+            width: 42, height: 25, borderRadius: 99, border: "none", cursor: "pointer",
+            background: r.enabled ? C.brandGrad : C.borderStrong,
+            position: "relative", transition: "background 0.2s", flexShrink: 0
+          }}>
+          <span style={{
+            position: "absolute", top: 3, insetInlineStart: r.enabled ? 20 : 3,
+            width: 19, height: 19, borderRadius: "50%", background: "#fff",
+            boxShadow: "0 1px 4px rgba(26,34,64,0.25)", transition: "inset-inline-start 0.2s"
+          }} />
+        </button>
+      </div>
+    );
+  };
+  return (
+    <div style={{
+      background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16,
+      padding: "14px 16px 4px", marginTop: 16, boxShadow: "0 4px 16px rgba(26,34,64,0.05)"
+    }}>
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: C.text, fontFamily: oswald, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        {t.rem_title}
+      </div>
+      <div style={{ fontSize: 11, color: C.textMuted, lineHeight: 1.5, margin: "4px 0 8px" }}>{t.rem_hint}</div>
+      <Row slot="am" label={t.rem_am} />
+      <Row slot="pm" label={t.rem_pm} />
+    </div>
+  );
+}
+
 
 function ReleaseCard({ rel, t, C, oswald, entry, daysActive, onToggle, onMantra, onClose }) {
   const [showFormula, setShowFormula] = useState(false);

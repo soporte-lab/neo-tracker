@@ -323,19 +323,15 @@ const injectFonts = () => {
     @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
     @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 8px) } to { opacity: 1; transform: translate(-50%, 0) } }
     @keyframes spin { to { transform: rotate(360deg) } }
-    @keyframes nrmFlapH {
-      0%       { transform: rotateX(179deg) }
-      46%,100% { transform: rotateX(0deg) }
+    @keyframes nrmFlapR {
+      0%       { transform: rotateY(-179deg) }
+      46%,100% { transform: rotateY(0deg) }
     }
-    @keyframes nrmFlapV {
-      0%,50%   { transform: rotateY(179deg) }
-      100%     { transform: rotateY(0deg) }
+    @keyframes nrmFlapB {
+      0%,52%   { transform: rotateX(-179deg) }
+      100%     { transform: rotateX(0deg) }
     }
-    @keyframes nrmSettle {
-      0%,88% { box-shadow: 0 10px 22px rgba(26,34,64,0.16) }
-      100%   { box-shadow: 0 3px 10px rgba(26,34,64,0.08) }
-    }
-    @keyframes nrmWrite { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0 -4% 0 0) } }
+    @keyframes nrmChar { from { opacity: 0; transform: translateY(2px) } to { opacity: 1; transform: none } }
     button { -webkit-tap-highlight-color: transparent }
     textarea, input { font-family: inherit }
   `;
@@ -825,91 +821,128 @@ export default function App() {
 
 /* ───────────────── COMPONENTES ───────────────── */
 
-/** Papel doblado en cuartos: dos solapas 3D de doble cara se desdoblan hacia el espectador. */
+/** Papel doblado en 4: cuadradito → se desdobla a la derecha → luego hacia abajo. */
 function Paper({ text, label, C }) {
   const [epoch, setEpoch] = useState(1); // re-monta la animación al tocar
-  const DUR = 1.4; // duración total del desdoblado (s)
+  const DUR = 1.5; // duración total del desdoblado (s)
+  const W = 240, H = 200;
 
   // Grano de papel neutro (ruido fractal SVG inline, muy sutil)
   const grain = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.4 0 0 0 0 0.4 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
   const white = "linear-gradient(160deg,#ffffff 0%,#fbfbf9 60%,#f4f4ef 100%)";
-  const crease = "rgba(90,90,95,0.14)";
+  const shade = "rgba(90,90,95,";
 
-  // Cara frontal de una solapa: mismo papel blanco, con sombra suave junto a la bisagra
-  const flapFront = (hingeDir) => ({
-    position: "absolute", inset: 0, borderRadius: 4, boxSizing: "border-box",
-    backgroundImage: `${grain}, linear-gradient(${hingeDir}, rgba(90,90,95,0.10), rgba(90,90,95,0) 35%), ${white}`,
+  // Cara de papel blanco con sombreado suave junto a la(s) bisagra(s)
+  const face = (hinges, extra) => ({
+    position: "absolute", inset: 0, boxSizing: "border-box",
+    backgroundImage: `${grain}, ${hinges}, ${white}`,
     border: "1px solid #e9e9e3",
-    backfaceVisibility: "hidden"
+    backfaceVisibility: "hidden",
+    ...extra
   });
-  // Reverso: papel algo más gris, más oscuro hacia el pliegue, con sombra proyectada
-  const flapBack = (hingeDir, flip) => ({
-    position: "absolute", inset: 0, borderRadius: 4, boxSizing: "border-box",
-    backgroundImage: `${grain}, linear-gradient(${hingeDir}, rgba(90,90,95,0.20), rgba(90,90,95,0.05) 50%), linear-gradient(160deg,#f4f4f0,#e9e9e3)`,
-    border: "1px solid #e0e0d9",
+  // Reverso gris de solapa
+  const back = (hingeDir, flip) => ({
+    position: "absolute", inset: 0, boxSizing: "border-box",
+    backgroundImage: `${grain}, linear-gradient(${hingeDir}, ${shade}0.20), ${shade}0.05) 55%), linear-gradient(160deg,#f3f3ef,#e8e8e2)`,
+    border: "1px solid #dfdfd8",
     transform: flip,
     backfaceVisibility: "hidden",
     boxShadow: "0 8px 16px rgba(26,34,64,0.20)"
   });
 
+  // Escritura progresiva: un span por carácter con retardo incremental
+  const CHAR_DELAY = 0.028, CHAR_ANIM = 0.14;
+
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ fontSize: 10.5, color: C.textMuted, marginBottom: 8, textAlign: "center" }}>{label}</div>
-      <div key={epoch} style={{ perspective: 1100, width: 240, margin: "0 auto" }}
+      <div key={epoch} style={{ perspective: 1100, width: W, height: H, margin: "0 auto", position: "relative" }}
         onClick={() => { haptic(8); setEpoch(e => e + 1); }} title={label}>
+
+        {/* Cuadrante superior-izquierdo: el "cuadradito" inicial, siempre visible */}
         <div style={{
-          position: "relative", cursor: "pointer",
-          width: 240, height: 205, boxSizing: "border-box",
-          transformStyle: "preserve-3d",
-          animation: `nrmSettle ${DUR}s ease-out both`,
-          border: "1px solid #e9e9e3", borderRadius: 5,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          padding: "20px 18px",
-          // Papel abierto: grano + dobleces en cruz + base blanca
-          backgroundImage: `
-            ${grain},
-            linear-gradient(to right, transparent calc(50% - 0.5px), ${crease} 50%, transparent calc(50% + 0.5px)),
-            linear-gradient(to bottom, transparent calc(50% - 0.5px), ${crease} 50%, transparent calc(50% + 0.5px)),
-            ${white}
-          `
+          position: "absolute", top: 0, left: 0, width: "50%", height: "50%",
+          transform: "translateZ(1px)",
+          ...face(
+            `linear-gradient(to left, ${shade}0.12), transparent 18%), linear-gradient(to top, ${shade}0.10), transparent 18%)`,
+            { borderRadius: "5px 0 0 0", boxShadow: "0 3px 10px rgba(26,34,64,0.10)" }
+          )
+        }} />
+
+        {/* Solapa derecha: primer desdoblado — se levanta del cuadradito y cae a la derecha */}
+        <div style={{
+          position: "absolute", top: 0, left: "50%", width: "50%", height: "50%",
+          transformOrigin: "center left", transformStyle: "preserve-3d",
+          transform: "translateZ(1px)",
+          animation: `nrmFlapR ${DUR}s cubic-bezier(0.36,1.15,0.5,1) both`,
+          pointerEvents: "none"
         }}>
-          {/* Solapa inferior: primer desdoblado — gira hacia ti sobre el pliegue central */}
-          <div style={{
-            position: "absolute", left: 0, right: 0, top: "50%", height: "50%",
-            transformOrigin: "top center", transformStyle: "preserve-3d",
-            animation: `nrmFlapH ${DUR}s cubic-bezier(0.34,1.2,0.5,1) both`, pointerEvents: "none"
-          }}>
-            <div style={flapFront("to top")} />
-            <div style={flapBack("to top", "rotateX(180deg)")} />
+          <div style={face(
+            `linear-gradient(to left, transparent 82%, ${shade}0.12))`,
+            { borderRadius: "0 5px 0 0" }
+          )}>
+            {/* Esquina doblada del papel */}
+            <div style={{
+              position: "absolute", top: -1, right: -1, width: 0, height: 0,
+              borderStyle: "solid", borderWidth: "0 15px 15px 0",
+              borderColor: "transparent #e6e6df transparent transparent",
+              borderRadius: "0 5px 0 0",
+              filter: "drop-shadow(-1px 1px 1px rgba(90,90,95,0.18))"
+            }} />
           </div>
-          {/* Solapa derecha: segundo desdoblado — gira hacia ti sobre el pliegue vertical */}
-          <div style={{
-            position: "absolute", top: 0, bottom: 0, left: "50%", width: "50%",
-            transformOrigin: "center left", transformStyle: "preserve-3d",
-            animation: `nrmFlapV ${DUR}s cubic-bezier(0.34,1.2,0.5,1) both`, pointerEvents: "none"
-          }}>
-            <div style={flapFront("to left")} />
-            <div style={flapBack("to left", "rotateY(180deg)")} />
-          </div>
-          {/* Esquina doblada */}
-          <div style={{
-            position: "absolute", top: 0, right: 0, width: 0, height: 0,
-            borderStyle: "solid", borderWidth: "0 16px 16px 0",
-            borderColor: "transparent #e6e6df transparent transparent",
-            borderRadius: "0 5px 0 0",
-            filter: "drop-shadow(-1px 1px 1px rgba(90,90,95,0.18))"
-          }} />
-          {/* Texto manuscrito: aparece cuando el papel termina de abrirse */}
+          <div style={back("to right", "rotateY(180deg)")} />
+        </div>
+
+        {/* Solapa inferior: segundo desdoblado — la tira se desdobla hacia abajo */}
+        <div style={{
+          position: "absolute", top: "50%", left: 0, right: 0, height: "50%",
+          transformOrigin: "top center", transformStyle: "preserve-3d",
+          animation: `nrmFlapB ${DUR}s cubic-bezier(0.36,1.15,0.5,1) both`,
+          pointerEvents: "none"
+        }}>
+          <div style={face(
+            `linear-gradient(to bottom, ${shade}0.12), transparent 20%), linear-gradient(to right, transparent calc(50% - 0.5px), ${shade}0.14) 50%, transparent calc(50% + 0.5px))`,
+            { borderRadius: "0 0 5px 5px", boxShadow: "0 4px 12px rgba(26,34,64,0.12)" }
+          )} />
+          <div style={back("to bottom", "rotateX(180deg)")} />
+        </div>
+
+        {/* Texto manuscrito: se escribe carácter a carácter al terminar de abrirse */}
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 2,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "20px 18px", boxSizing: "border-box",
+          pointerEvents: "none", transform: "translateZ(2px)"
+        }}>
           <div style={{
             fontFamily: "'Caveat', cursive",
-            fontWeight: 600, fontSize: 22, lineHeight: 1.28,
+            fontWeight: 600, fontSize: 22, lineHeight: 1.3,
             color: "#33406e", textAlign: "center",
             transform: "rotate(-1.2deg)",
-            display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            animation: `nrmWrite 0.9s ease-out ${DUR + 0.05}s both`
+            display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical",
+            overflow: "hidden"
           }}>
-            {text}
+            {(() => {
+              let idx = 0;
+              return (text || "").split(" ").map((word, w) => {
+                const spans = [...word].map((ch) => {
+                  const d = (DUR + 0.15 + idx * CHAR_DELAY).toFixed(3);
+                  idx++;
+                  return (
+                    <span key={idx} style={{
+                      opacity: 0, display: "inline-block",
+                      animation: `nrmChar ${CHAR_ANIM}s ease-out ${d}s forwards`
+                    }}>{ch}</span>
+                  );
+                });
+                idx++; // el espacio también cuenta como "tiempo de escritura"
+                return (
+                  <span key={"w" + w} style={{ display: "inline-block", whiteSpace: "nowrap" }}>
+                    {spans}{w < text.split(" ").length - 1 ? "\u00A0" : ""}
+                  </span>
+                );
+              });
+            })()}
           </div>
         </div>
       </div>

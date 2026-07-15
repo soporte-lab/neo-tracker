@@ -7,8 +7,9 @@ import{r as y,j as e,c as ze}from"./client-7e57b734.js";const q=(()=>{const r=ty
       46%,100% { transform: rotateY(0deg) }
     }
     @keyframes nrmFlapB {
-      0%,52%   { transform: rotateX(-179deg) }
-      100%     { transform: rotateX(0deg) }
+      0%,51.9% { opacity: 0; transform: rotateX(-179deg) }
+      52%      { opacity: 1; transform: rotateX(-179deg) }
+      100%     { opacity: 1; transform: rotateX(0deg) }
     }
     @keyframes nrmChar { from { opacity: 0; transform: translateY(2px) } to { opacity: 1; transform: none } }
     button { -webkit-tap-highlight-color: transparent }

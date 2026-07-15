@@ -737,7 +737,12 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 16 }}>
                   <h2 style={{ fontFamily: oswald, fontSize: 20, fontWeight: 600, margin: 0, textTransform: "uppercase", letterSpacing: "0.02em" }}>{t.releases_title}</h2>
                   {streak > 0 && (
-                    <div style={{ fontSize: 12, color: C.brand1, fontWeight: 600 }}>🔥 {streak} {t.streak_label}</div>
+                    <div style={{ fontSize: 12, color: C.brand1, fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#e8a93c" stroke="#b7791f" strokeWidth="1" strokeLinejoin="round">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                      {streak} {t.streak_label}
+                    </div>
                   )}
                 </div>
 
@@ -1193,8 +1198,11 @@ function MethodView({ t, C, oswald, Card }) {
     glass: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M6 3h12l-1.5 18h-9L6 3z" />
-        <path d="M7.6 11c1.5 1 3 .9 4.4 0s2.9-1 4.4 0" opacity="0.9">
-          <animateTransform attributeName="transform" type="translate" values="0 0; 0 -1.4; 0 0" dur="2.6s" repeatCount="indefinite" />
+        <path d="M7.4 12c1.5 1.2 3.1 1.1 4.6 0s3.1-1.2 4.6 0">
+          <animateTransform attributeName="transform" type="translate" values="0 0.8; 0 -2.2; 0 0.8" dur="2.2s" repeatCount="indefinite" />
+        </path>
+        <path d="M7.6 15c1.4 1 2.9.9 4.4 0s3-1 4.4 0" opacity="0.45">
+          <animateTransform attributeName="transform" type="translate" values="0 -1.5; 0 1; 0 -1.5" dur="2.2s" repeatCount="indefinite" />
         </path>
       </svg>
     ),

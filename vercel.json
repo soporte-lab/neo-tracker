@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    { "source": "/subconsciente", "destination": "/subconsciente.html" }
+  ],
   "headers": [
     {
       "source": "/sw.js",

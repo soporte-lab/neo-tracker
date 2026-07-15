@@ -443,11 +443,10 @@ export default function App() {
   /* ── Racha ── */
   const active = releases.filter(r => r.status === "active");
   const dayComplete = (dateKey, rels = active) => {
-    if (!rels.length) return false;
+    const existing = rels.filter(r => (r.createdAt || "").slice(0, 10) <= dateKey);
+    if (!existing.length) return false; // ningún release existía ese día → no cuenta
     const day = history[dateKey] || {};
-    return rels.every(r => {
-      const created = r.createdAt ? r.createdAt.slice(0, 10) : "0000";
-      if (created > dateKey) return true; // no existía aún ese día
+    return existing.every(r => {
       const e = day[r.id] || {};
       if (r.tool === "glass") return e.am && e.pm;
       if (r.tool === "mantra") return (e.mantraMin || 0) >= 30;
@@ -1043,10 +1042,10 @@ function ProgressView({ t, C, oswald, Card, releases, history, streak, dayComple
     if (!keys.length) return streak;
     let best = 0, cur = 0, prev = null;
     keys.forEach(k => {
-      const rels = releases.filter(r => r.status !== "closed" || (r.closedAt || "9999") >= k);
-      const ok = rels.length && rels.every(r => {
-        const created = r.createdAt ? r.createdAt.slice(0, 10) : "0000";
-        if (created > k) return true;
+      const existing = releases
+        .filter(r => r.status !== "closed" || (r.closedAt || "9999") >= k)
+        .filter(r => (r.createdAt || "").slice(0, 10) <= k);
+      const ok = existing.length && existing.every(r => {
         const e = (history[k] || {})[r.id] || {};
         if (r.tool === "glass") return e.am && e.pm;
         if (r.tool === "mantra") return (e.mantraMin || 0) >= 30;

@@ -171,8 +171,27 @@ const queueServerPush = (shortKey, value, ts) => {
   if (!bridge.isAvailable()) return;
 
   if (__nrSyncTimer) clearTimeout(__nrSyncTimer);
-  __nrSyncTimer = setTimeout(flushPendingPush, 3000);
+  __nrSyncTimer = setTimeout(flushPendingPush, 400);
 };
+
+/**
+ * Flush inmediato del buffer de sync. Crítico en iOS PWA: al pasar a
+ * background el JS se congela al instante y un setTimeout pendiente nunca
+ * dispara — sin esto, el gesto "abrir → marcar check → cerrar" perdía el
+ * push al servidor y el check solo vivía en el localStorage del iframe
+ * (que ITP borra). postMessage al parent es síncrono en el envío, así que
+ * sí funciona dentro de visibilitychange/pagehide.
+ */
+const flushNow = () => {
+  if (__nrSyncTimer) { clearTimeout(__nrSyncTimer); __nrSyncTimer = null; }
+  flushPendingPush();
+};
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushNow();
+  });
+  window.addEventListener("pagehide", flushNow);
+}
 
 const storage = {
   get: (k) => {
@@ -2077,6 +2096,19 @@ export default function App() {
             try { localStorage.setItem("neo-history", JSON.stringify(remote.history)); } catch {}
             try { localStorage.setItem("neo-history-ts", String(remote.history_ts)); } catch {}
             setHistory(remote.history);
+            // Restaurar los checks de HOY desde el servidor. `neo-checks-${today}`
+            // no se sincroniza (clave local del iframe) y Safari/ITP la borra:
+            // sin esto, tras un borrado los checkboxes aparecían vacíos aunque
+            // el día estuviera completo en remote.history. Unión con prioridad
+            // local para no pisar un check recién hecho en este dispositivo.
+            const rc = remote.history[today] && remote.history[today].checks;
+            if (rc) {
+              setChecks(prev => {
+                const merged = { ...rc, ...prev };
+                try { localStorage.setItem(`neo-checks-${today}`, JSON.stringify(merged)); } catch {}
+                return merged;
+              });
+            }
           } else if (localHistoryTs > remote.history_ts && localHistory && Object.keys(localHistory).length) {
             __nrSyncPending.history = localHistory;
             __nrSyncPending.history_ts = localHistoryTs;

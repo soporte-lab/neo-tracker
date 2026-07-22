@@ -90,8 +90,25 @@ const queuePush = (shortKey, value, ts) => {
   __syncPending[shortKey] = { value, ts };
   if (__hydrating) return;
   if (__syncTimer) clearTimeout(__syncTimer);
-  __syncTimer = setTimeout(flushPush, 800);
+  __syncTimer = setTimeout(flushPush, 400);
 };
+
+/**
+ * Flush inmediato al ocultarse la app. iOS congela el JS al pasar a
+ * background y el setTimeout pendiente nunca dispara — sin esto, el gesto
+ * "marcar vaciado → cerrar" perdía el push al servidor (mismo bug corregido
+ * en el tracker el 17-jul-2026).
+ */
+const flushNow = () => {
+  if (__syncTimer) { clearTimeout(__syncTimer); __syncTimer = null; }
+  flushPush();
+};
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushNow();
+  });
+  window.addEventListener("pagehide", flushNow);
+}
 
 const storage = {
   get: (k) => {
